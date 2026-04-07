@@ -31,6 +31,12 @@ _SSE_SERIALIZERS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
     },
     "tool-end": lambda d: {"type": "tool-end", "toolName": d["toolName"]},
     "sources": lambda d: {"type": "sources", "sources": d["sources"]},
+    "tool-result": lambda d: {
+        "type": "tool-result",
+        "toolName": d["toolName"],
+        "toolInput": d["toolInput"],
+        "result": d["result"],
+    },
 }
 
 

@@ -1,4 +1,6 @@
+import ast
 import json
+import math
 from typing import TypedDict
 
 import structlog
@@ -11,6 +13,11 @@ from langgraph.prebuilt import create_react_agent
 from app.domain.entities import Message
 
 logger = structlog.get_logger()
+
+_SAFE_NAMES: dict[str, object] = {
+    k: v for k, v in math.__dict__.items() if not k.startswith("_")
+}
+_SAFE_NAMES.update({"abs": abs, "round": round, "min": min, "max": max})
 
 SYSTEM_PROMPT = "You are a helpful AI assistant. Be concise and clear in your responses."
 
@@ -38,6 +45,31 @@ def prepare_messages(conversation_messages: list[Message], system_prompt: str = 
             lc_messages.append(AIMessage(content=msg.content))
 
     return ChatState(messages=lc_messages, system_prompt=prompt)
+
+
+def safe_eval(expression: str) -> str:
+    """Evaluate a mathematical expression safely and return the string result."""
+    try:
+        tree = ast.parse(expression.strip(), mode="eval")
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Import, ast.ImportFrom, ast.Attribute)):
+                raise ValueError(f"Unsafe expression: {expression}")
+        result = eval(  # noqa: S307
+            compile(tree, "<expr>", "eval"),
+            {"__builtins__": {}},
+            _SAFE_NAMES,
+        )
+        if isinstance(result, float):
+            rounded = round(result, 10)
+            formatted = f"{rounded:.10f}".rstrip("0").rstrip(".")
+            if "." in formatted:
+                return formatted
+            return formatted
+        return str(result)
+    except ZeroDivisionError:
+        return "Error: division by zero"
+    except (ValueError, SyntaxError, TypeError, NameError) as exc:
+        return f"Error: {exc}"
 
 
 def build_chat_agent(llm: ChatOpenAI, max_search_calls: int = 3):
@@ -73,4 +105,14 @@ def build_chat_agent(llm: ChatOpenAI, max_search_calls: int = 3):
         func=_limited_search,
     )
 
-    return create_react_agent(llm, [search_tool])
+    calculate_tool = StructuredTool.from_function(
+        name="calculate",
+        description=(
+            "Evaluate a mathematical expression and return the numeric result. "
+            "Supports arithmetic (+, -, *, /, **, %), math functions (sqrt, sin, cos, log, etc.), "
+            "and constants (pi, e). Pass the expression as a string, e.g. 'sqrt(144) + 3**2'."
+        ),
+        func=safe_eval,
+    )
+
+    return create_react_agent(llm, [search_tool, calculate_tool])

@@ -163,6 +163,8 @@ class OpenAILLMService:
                     )
                     err = event["data"].get("error")
                     err_s = repr(err) if err is not None else "unknown"
+                    inp = event["data"].get("input", {})
+                    q = _tool_input_query(inp)
                     logger.warning(
                         "llm.stream_agent_chat.tool_invocation",
                         phase="error",
@@ -177,6 +179,14 @@ class OpenAILLMService:
                     yield {
                         "type": "sources",
                         "data": {"sources": []},
+                    }
+                    yield {
+                        "type": "tool-result",
+                        "data": {
+                            "toolName": event["name"],
+                            "toolInput": q,
+                            "result": f"Error: {err_s}",
+                        },
                     }
 
                 elif kind == "on_tool_end" and event.get("name"):
@@ -193,6 +203,8 @@ class OpenAILLMService:
                     )
                     raw_output = str(event["data"].get("output", ""))
                     sources = _parse_search_results(raw_output)
+                    inp = event["data"].get("input", {})
+                    q = _tool_input_query(inp)
                     yield {
                         "type": "tool-end",
                         "data": {"toolName": event["name"]},
@@ -200,6 +212,14 @@ class OpenAILLMService:
                     yield {
                         "type": "sources",
                         "data": {"sources": sources},
+                    }
+                    yield {
+                        "type": "tool-result",
+                        "data": {
+                            "toolName": event["name"],
+                            "toolInput": q,
+                            "result": raw_output,
+                        },
                     }
 
                 elif kind == "on_chat_model_stream":

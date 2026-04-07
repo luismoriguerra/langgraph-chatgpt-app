@@ -26,6 +26,7 @@ class ToolInvocationResponse(BaseModel):
     tool_name: str
     tool_input: str
     tool_output: list[SearchResultResponse]
+    tool_result: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

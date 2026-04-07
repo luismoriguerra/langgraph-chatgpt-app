@@ -44,3 +44,4 @@ class ToolInvocation:
     tool_input: str
     tool_output: list[SearchResult]
     created_at: datetime
+    tool_result: str = ""
