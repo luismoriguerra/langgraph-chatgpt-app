@@ -9,6 +9,8 @@ alwaysApply: true
 Auto-generated from all feature plans. Last updated: 2026-04-07
 
 ## Active Technologies
+- Python 3.11+ (backend), TypeScript strict (frontend) + FastAPI, LangChain, LangGraph, langchain-community, duckduckgo-search, SQLAlchemy 2.0 async, Astro, React (002-web-search-tool)
+- PostgreSQL (existing) + new `tool_invocations` table (002-web-search-tool)
 
 - Python 3.11+ (backend), TypeScript strict (frontend) + FastAPI, LangChain, LangGraph, SQLAlchemy 2.0 async, Alembic (BE); Astro, Vercel AI SDK, React (islands), react-markdown (FE) (001-chatgpt-app)
 
@@ -28,6 +30,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+ (backend), TypeScript strict (frontend): Follow standard conventions
 
 ## Recent Changes
+- 002-web-search-tool: Added Python 3.11+ (backend), TypeScript strict (frontend) + FastAPI, LangChain, LangGraph, langchain-community, duckduckgo-search, SQLAlchemy 2.0 async, Astro, React
 
 - 001-chatgpt-app: Added Python 3.11+ (backend), TypeScript strict (frontend) + FastAPI, LangChain, LangGraph, SQLAlchemy 2.0 async, Alembic (BE); Astro, Vercel AI SDK, React (islands), react-markdown (FE)
 

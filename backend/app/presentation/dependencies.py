@@ -8,6 +8,7 @@ from app.infrastructure.database import get_db_session
 from app.infrastructure.repositories import (
     SqlAlchemyConversationRepository,
     SqlAlchemyMessageRepository,
+    SqlAlchemyToolInvocationRepository,
 )
 
 
@@ -25,3 +26,9 @@ async def get_message_repo(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> SqlAlchemyMessageRepository:
     return SqlAlchemyMessageRepository(session)
+
+
+async def get_tool_invocation_repo(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SqlAlchemyToolInvocationRepository:
+    return SqlAlchemyToolInvocationRepository(session)
