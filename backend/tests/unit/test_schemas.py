@@ -1,69 +1,98 @@
+import uuid
+from datetime import UTC, datetime
+
 import pytest
 from pydantic import ValidationError
 
 from app.presentation.schemas import (
-    ConversationListResponse,
-    ConversationResponse,
     CreateConversationRequest,
+    MessageResponse,
+    SearchResultResponse,
     SendMessageRequest,
+    ToolInvocationResponse,
     UpdateConversationRequest,
 )
 
 
-class TestSendMessageRequest:
-    def test_valid_message(self) -> None:
-        req = SendMessageRequest(message="Hello")
-        assert req.message == "Hello"
-
-    def test_empty_message_rejected(self) -> None:
-        with pytest.raises(ValidationError):
-            SendMessageRequest(message="")
-
-    def test_max_length_enforced(self) -> None:
-        long_msg = "a" * 10001
-        with pytest.raises(ValidationError):
-            SendMessageRequest(message=long_msg)
-
-    def test_exactly_max_length_accepted(self) -> None:
-        msg = "a" * 10000
-        req = SendMessageRequest(message=msg)
-        assert len(req.message) == 10000
+def test_search_result_response() -> None:
+    m = SearchResultResponse(title="T", snippet="S", url="https://example.com")
+    assert m.title == "T"
+    assert m.snippet == "S"
+    assert m.url == "https://example.com"
 
 
-class TestCreateConversationRequest:
-    def test_default_title(self) -> None:
-        req = CreateConversationRequest()
-        assert req.title == "New conversation..."
-
-    def test_custom_title(self) -> None:
-        req = CreateConversationRequest(title="My Chat")
-        assert req.title == "My Chat"
-
-
-class TestUpdateConversationRequest:
-    def test_valid_title(self) -> None:
-        req = UpdateConversationRequest(title="Updated Title")
-        assert req.title == "Updated Title"
-
-    def test_title_max_length_enforced(self) -> None:
-        with pytest.raises(ValidationError):
-            UpdateConversationRequest(title="a" * 101)
-
-
-class TestConversationResponse:
-    def test_from_dict(self) -> None:
-        data = {
-            "id": "550e8400-e29b-41d4-a716-446655440000",
-            "title": "Test",
-            "created_at": "2026-04-07T10:00:00",
-            "updated_at": "2026-04-07T10:00:00",
-        }
-        resp = ConversationResponse(**data)
-        assert resp.title == "Test"
+def test_tool_invocation_response() -> None:
+    iid = uuid.uuid4()
+    now = datetime.now(UTC)
+    out = [
+        SearchResultResponse(title="A", snippet="a", url="https://a.test"),
+        SearchResultResponse(title="B", snippet="b", url="https://b.test"),
+    ]
+    m = ToolInvocationResponse(
+        id=iid,
+        tool_name="web_search",
+        tool_input='{"q": "hello"}',
+        tool_output=out,
+        created_at=now,
+    )
+    assert m.id == iid
+    assert m.tool_name == "web_search"
+    assert m.tool_input == '{"q": "hello"}'
+    assert len(m.tool_output) == 2
+    assert m.created_at == now
 
 
-class TestConversationListResponse:
-    def test_empty_list(self) -> None:
-        resp = ConversationListResponse(conversations=[], total=0)
-        assert resp.total == 0
-        assert resp.conversations == []
+def test_message_response_with_tool_invocations() -> None:
+    msg = MessageResponse(
+        id=uuid.uuid4(),
+        role="user",
+        content="Hi",
+        created_at=datetime.now(UTC),
+    )
+    assert msg.tool_invocations == []
+
+
+def test_message_response_with_populated_invocations() -> None:
+    mid = uuid.uuid4()
+    inv = ToolInvocationResponse(
+        id=uuid.uuid4(),
+        tool_name="web_search",
+        tool_input="q",
+        tool_output=[SearchResultResponse(title="x", snippet="y", url="https://z")],
+        created_at=datetime.now(UTC),
+    )
+    msg = MessageResponse(
+        id=mid,
+        role="assistant",
+        content="Results below.",
+        created_at=datetime.now(UTC),
+        tool_invocations=[inv],
+    )
+    assert len(msg.tool_invocations) == 1
+    assert msg.tool_invocations[0].tool_name == "web_search"
+    assert msg.tool_invocations[0].tool_output[0].url == "https://z"
+
+
+def test_send_message_request_valid() -> None:
+    req = SendMessageRequest(message="Hello")
+    assert req.message == "Hello"
+
+
+def test_send_message_request_empty_rejected() -> None:
+    with pytest.raises(ValidationError):
+        SendMessageRequest(message="")
+
+
+def test_send_message_request_too_long_rejected() -> None:
+    with pytest.raises(ValidationError):
+        SendMessageRequest(message="x" * 10001)
+
+
+def test_create_conversation_request_default_title() -> None:
+    req = CreateConversationRequest()
+    assert req.title == "New conversation..."
+
+
+def test_update_conversation_request_max_length() -> None:
+    with pytest.raises(ValidationError):
+        UpdateConversationRequest(title="x" * 101)

@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 from datetime import datetime
 from typing import Annotated
 
@@ -9,14 +10,21 @@ from app.domain.entities import Conversation
 from app.infrastructure.repositories import (
     SqlAlchemyConversationRepository,
     SqlAlchemyMessageRepository,
+    SqlAlchemyToolInvocationRepository,
 )
-from app.presentation.dependencies import get_conversation_repo, get_message_repo
+from app.presentation.dependencies import (
+    get_conversation_repo,
+    get_message_repo,
+    get_tool_invocation_repo,
+)
 from app.presentation.schemas import (
     ConversationDetailResponse,
     ConversationListResponse,
     ConversationResponse,
     CreateConversationRequest,
     MessageResponse,
+    SearchResultResponse,
+    ToolInvocationResponse,
     UpdateConversationRequest,
 )
 
@@ -44,14 +52,46 @@ async def get_conversation(
     conversation_id: uuid.UUID,
     conv_repo: Annotated[SqlAlchemyConversationRepository, Depends(get_conversation_repo)] = ...,  # type: ignore[assignment]
     msg_repo: Annotated[SqlAlchemyMessageRepository, Depends(get_message_repo)] = ...,  # type: ignore[assignment]
+    tool_repo: Annotated[  # type: ignore[assignment]
+        SqlAlchemyToolInvocationRepository, Depends(get_tool_invocation_repo)
+    ] = ...,
 ) -> ConversationDetailResponse:
     conversation = await conv_repo.get_by_id(conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
+
     messages = await msg_repo.list_by_conversation(conversation_id)
+    tool_invocations = await tool_repo.list_by_conversation(conversation_id)
+
+    invocations_by_message: dict[uuid.UUID, list[ToolInvocationResponse]] = defaultdict(list)
+    for inv in tool_invocations:
+        invocations_by_message[inv.message_id].append(
+            ToolInvocationResponse(
+                id=inv.id,
+                tool_name=inv.tool_name,
+                tool_input=inv.tool_input,
+                tool_output=[
+                    SearchResultResponse(title=sr.title, snippet=sr.snippet, url=sr.url)
+                    for sr in inv.tool_output
+                ],
+                created_at=inv.created_at,
+            )
+        )
+
+    message_responses = [
+        MessageResponse(
+            id=m.id,
+            role=m.role,
+            content=m.content,
+            created_at=m.created_at,
+            tool_invocations=invocations_by_message.get(m.id, []),
+        )
+        for m in messages
+    ]
+
     return ConversationDetailResponse(
         **ConversationResponse.model_validate(conversation.__dict__).model_dump(),
-        messages=[MessageResponse.model_validate(m.__dict__) for m in messages],
+        messages=message_responses,
     )
 
 

@@ -1,20 +1,27 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.1.0 → 1.2.0
-  Modified principles: None (all 7 principles unchanged)
+  Version change: 1.2.0 → 1.3.0
+  Modified principles:
+    - III. Test-First Development: expanded to mandate both unit
+      tests AND Playwright E2E tests for every feature. Unit tests
+      must cover all new backend and frontend code. E2E tests must
+      verify end-to-end browser behavior. Both must pass before a
+      feature is considered complete.
   Added sections:
-    - Build Automation row in Technology Stack table
-    - "Makefile (Developer Experience)" subsection under
-      Development Workflow & Quality Gates
+    - Testing (E2E) row in Technology Stack table
+    - `make test-e2e` target in Makefile mandatory targets table
   Removed sections: None
   Modified sections:
-    - "Database & Local Development": replaced vague "make target
-      or script" sentence with reference to the new Makefile section
+    - Quality Gates: added gate 7 for Playwright E2E tests
+    - Code Review Standards: updated Principle III reviewer check
+      to verify both unit and E2E tests exist
   Templates requiring updates:
     - .specify/templates/plan-template.md ✅ reviewed (no changes needed)
     - .specify/templates/spec-template.md ✅ reviewed (no changes needed)
-    - .specify/templates/tasks-template.md ✅ reviewed (no changes needed)
+    - .specify/templates/tasks-template.md ✅ reviewed (no changes needed;
+      template notes tests as optional per-spec, but constitution
+      Principle III overrides — implementers must include tests)
     - .specify/templates/checklist-template.md ✅ reviewed (no changes needed)
   Follow-up TODOs: None
 -->
@@ -63,22 +70,54 @@ All service dependencies MUST be injected, never hard-coded:
 
 ### III. Test-First Development (NON-NEGOTIABLE)
 
-Every feature MUST follow the Red-Green-Refactor cycle:
+Every feature MUST follow the Red-Green-Refactor cycle and MUST
+include **both unit tests and Playwright E2E tests**. A feature
+is NOT considered complete until both test suites pass.
+
+#### Red-Green-Refactor Cycle
 
 - Tests MUST be written before implementation code.
 - Tests MUST fail (Red) before any production code is written.
 - Production code MUST be the minimum required to pass (Green).
 - Code MUST then be refactored while keeping tests green.
-- Unit tests MUST cover domain and application layers in isolation
-  using test doubles for all infrastructure dependencies.
-- Integration tests MUST verify LangGraph graph execution,
-  FastAPI endpoint contracts, and LLM chain behavior using
-  recorded/mocked responses.
+
+#### Unit Tests (MANDATORY for every feature)
+
+- Unit tests MUST cover **all** new backend code: domain logic,
+  application-layer use cases, FastAPI route handlers, and
+  LangGraph node functions. Test doubles MUST be used for all
+  infrastructure dependencies.
+- Unit tests MUST cover **all** new frontend code: Astro
+  components, React island components, service modules, and
+  utility functions.
 - Database integration tests MUST run against a real PostgreSQL
   instance (via Docker Compose test profile) with transactional
   rollback to ensure isolation between test cases.
-- Frontend component tests MUST verify Astro component rendering
-  and user interaction flows.
+
+#### Playwright E2E Tests (MANDATORY for every feature)
+
+- Every feature MUST include Playwright end-to-end tests that
+  verify the feature works correctly in a real browser.
+- E2E tests MUST exercise the full user journey: frontend UI
+  interaction → backend API call → database persistence →
+  response rendering in the browser.
+- E2E tests MUST cover the primary happy-path scenario and at
+  least one error/edge-case scenario per feature.
+- E2E tests MUST run against the full application stack (backend
+  + frontend + database) started via Docker Compose or local
+  dev servers.
+- E2E tests MUST be authored using Playwright's best practices:
+  use locators over raw selectors, avoid hard-coded waits, and
+  ensure tests are deterministic and parallelizable.
+
+#### Completion Criteria
+
+- A feature is complete ONLY when **all** of the following hold:
+  1. All unit tests pass (`make test-unit` + `make test-frontend`).
+  2. All Playwright E2E tests pass (`make test-e2e`).
+  3. No pre-existing tests have been broken.
+- Pull requests MUST NOT be merged if either unit tests or E2E
+  tests are missing or failing.
 
 ### IV. Separation of Concerns
 
@@ -155,6 +194,7 @@ Start with the simplest viable solution:
 | Build Automate | GNU Make (Makefile)               | Any                  |
 | Testing (BE)   | pytest + pytest-asyncio           | Latest stable        |
 | Testing (FE)   | Vitest or Astro test utilities    | Latest stable        |
+| Testing (E2E)  | Playwright                        | Latest stable        |
 | Linting (BE)   | Ruff                              | Latest stable        |
 | Linting (FE)   | ESLint + Prettier                 | Latest stable        |
 | Type Check     | mypy (BE) + TypeScript strict (FE)| Enforced in CI       |
@@ -211,6 +251,7 @@ MUST be achievable through a `make` target.
 | `make test-unit`    | Run backend unit tests only (`pytest tests/unit`)    |
 | `make test-int`     | Run backend integration tests only (`pytest tests/integration`) |
 | `make test-frontend`| Run frontend tests                                   |
+| `make test-e2e`     | Run Playwright E2E tests against the full stack      |
 | `make lint`         | Run all linters: `ruff check` (BE) + `eslint` (FE)  |
 | `make format`       | Auto-format all code: `ruff format` (BE) + `prettier --write` (FE) |
 | `make typecheck`    | Run `mypy --strict` (BE) + `tsc --noEmit` (FE)      |
@@ -259,7 +300,10 @@ Every pull request MUST pass all gates before merge:
    pass with 100% of tests green.
 5. **Integration Tests**: `pytest tests/integration` passes
    (requires PostgreSQL via Docker Compose).
-6. **Coverage**: Code coverage MUST NOT decrease. New code MUST
+6. **E2E Tests**: `make test-e2e` (Playwright) passes. Every
+   new feature MUST have corresponding E2E tests that verify
+   end-to-end browser behavior.
+7. **Coverage**: Code coverage MUST NOT decrease. New code MUST
    have >= 80% line coverage.
 
 ### Code Review Standards
@@ -268,8 +312,9 @@ Every pull request MUST pass all gates before merge:
   boundaries (Principle I).
 - Reviewers MUST verify new services are injected, not
   instantiated inline (Principle II).
-- Reviewers MUST verify tests exist and were written before
-  implementation (Principle III).
+- Reviewers MUST verify both unit tests and Playwright E2E tests
+  exist and were written before implementation (Principle III).
+  A PR missing either test type MUST be rejected.
 - Reviewers MUST verify that database schema changes are
   accompanied by an Alembic migration with a valid downgrade.
 
@@ -294,4 +339,4 @@ architectural and process decisions in this project.
   MAJOR for principle removals/redefinitions, MINOR for new
   principles or material expansions, PATCH for clarifications.
 
-**Version**: 1.2.0 | **Ratified**: 2026-04-07 | **Last Amended**: 2026-04-07
+**Version**: 1.3.0 | **Ratified**: 2026-04-07 | **Last Amended**: 2026-04-07

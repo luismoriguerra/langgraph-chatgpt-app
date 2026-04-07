@@ -65,6 +65,15 @@ def mock_message_repo():
 
 
 @pytest.fixture
+def mock_tool_repo():
+    repo = AsyncMock()
+    repo.create = AsyncMock()
+    repo.list_by_message = AsyncMock(return_value=[])
+    repo.list_by_conversation = AsyncMock(return_value=[])
+    return repo
+
+
+@pytest.fixture
 def mock_llm_service():
     service = AsyncMock()
 
@@ -73,5 +82,10 @@ def mock_llm_service():
             yield token
 
     service.stream_chat = fake_stream
+
+    async def fake_agent_stream(*args, **kwargs):  # type: ignore[no-untyped-def]
+        yield {"type": "text-delta", "data": {"textDelta": "Hello from agent"}}
+
+    service.stream_agent_chat = fake_agent_stream
     service.generate_title = AsyncMock(return_value="Test Title")
     return service

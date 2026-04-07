@@ -1,13 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
+import SearchIndicator from "./SearchIndicator";
 import { createConversation, getConversation, getChatStreamUrl } from "../services/api";
-
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
+import type { Message, Source } from "../types";
 
 interface ChatViewProps {
   conversationId: string | null;
@@ -15,8 +11,10 @@ interface ChatViewProps {
 }
 
 export default function ChatView({ conversationId, onConversationCreated }: ChatViewProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [sources, setSources] = useState<Source[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeConvId, setActiveConvId] = useState<string | null>(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -44,6 +42,8 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
             id: m.id,
             role: m.role,
             content: m.content,
+            created_at: m.created_at,
+            tool_invocations: m.tool_invocations || [],
           }))
         );
       } catch {
@@ -59,6 +59,8 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
 
   const handleSubmit = useCallback(async (userContent: string) => {
     setError(null);
+    setIsSearching(false);
+    setSources([]);
     setIsLoading(true);
 
     let convId = activeConvId;
@@ -70,24 +72,27 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
         justCreatedRef.current = convId;
         setActiveConvId(convId);
         onConversationCreated?.(convId);
-      } catch (e) {
+      } catch {
         setError("Failed to create conversation");
         setIsLoading(false);
         return;
       }
     }
 
-    const userMsg: ChatMessage = {
+    const now = new Date().toISOString();
+    const userMsg: Message = {
       id: `user-${Date.now()}`,
       role: "user",
       content: userContent,
+      created_at: now,
     };
     setMessages((prev) => [...prev, userMsg]);
 
-    const assistantMsg: ChatMessage = {
+    const assistantMsg: Message = {
       id: `assistant-${Date.now()}`,
       role: "assistant",
       content: "",
+      created_at: now,
     };
     setMessages((prev) => [...prev, assistantMsg]);
 
@@ -124,6 +129,7 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
           try {
             const payload = JSON.parse(line.slice(6));
             if (payload.type === "text-delta" && payload.textDelta) {
+              setIsSearching(false);
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantMsg.id
@@ -132,8 +138,14 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
                 )
               );
             }
+            if (payload.type === "tool-start") {
+              setIsSearching(true);
+            }
+            if (payload.type === "sources") {
+              setSources(payload.sources || []);
+            }
           } catch {
-            // skip malformed lines
+            continue;
           }
         }
       }
@@ -154,7 +166,11 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
   }, [activeConvId, onConversationCreated]);
 
   return (
-    <div style={styles.container}>
+    <div
+      style={styles.container}
+      aria-busy={isLoading || isSearching}
+      data-source-count={sources.length}
+    >
       <div style={styles.messageList}>
         {messages.length === 0 && !isLoading && (
           <div style={styles.empty}>
@@ -163,7 +179,13 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
           </div>
         )}
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} role={msg.role} content={msg.content} />
+          <div
+            key={msg.id}
+            style={{ display: "contents" }}
+            data-tool-invocation-count={(msg.tool_invocations ?? []).length}
+          >
+            <MessageBubble role={msg.role} content={msg.content} />
+          </div>
         ))}
         {isLoading && messages[messages.length - 1]?.content === "" && (
           <div style={styles.typing}>
@@ -172,6 +194,7 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
             <span style={{ ...styles.dot, animationDelay: "0.4s" }} />
           </div>
         )}
+        <SearchIndicator visible={isSearching} />
         <div ref={messagesEndRef} />
       </div>
 
