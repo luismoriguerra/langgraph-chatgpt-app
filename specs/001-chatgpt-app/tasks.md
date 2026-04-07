@@ -142,13 +142,13 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T048 [P] [US3] Write frontend component tests for new-chat flow (New Chat button clears view, first message creates conversation, empty chat discarded on navigation) in `frontend/tests/components/NewChat.test.tsx`
+- [x] T048 [P] [US3] Write frontend component tests for new-chat flow (New Chat button clears view, first message creates conversation, empty chat discarded on navigation) in `frontend/tests/components/NewChat.test.tsx`
 
 ### Implementation for User Story 3
 
-- [ ] T049 [US3] Add "New Chat" button to Sidebar component (always visible at top, not scrolled away) in `frontend/src/components/Sidebar.tsx`
-- [ ] T050 [US3] Implement new-chat state management in ChatView: clear messages, reset useChat hook, track "unsaved new chat" state; on first message send, create conversation via API then send message in `frontend/src/components/ChatView.tsx`
-- [ ] T051 [US3] Implement empty-chat discard logic: when user switches to another conversation while in an unsaved new-chat state, discard without persisting in `frontend/src/components/Sidebar.tsx` and `frontend/src/components/ChatView.tsx`
+- [x] T049 [US3] Add "New Chat" button to Sidebar component (always visible at top, not scrolled away) in `frontend/src/components/Sidebar.tsx`
+- [x] T050 [US3] Implement new-chat state management in ChatView: clear messages, reset useChat hook, track "unsaved new chat" state; on first message send, create conversation via API then send message in `frontend/src/components/ChatView.tsx`
+- [x] T051 [US3] Implement empty-chat discard logic: when user switches to another conversation while in an unsaved new-chat state, discard without persisting in `frontend/src/components/Sidebar.tsx` and `frontend/src/components/ChatView.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
