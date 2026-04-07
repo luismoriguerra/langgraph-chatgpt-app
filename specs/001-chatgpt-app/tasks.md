@@ -25,12 +25,12 @@
 
 **Purpose**: Project initialization, dependency management, and dev tooling
 
-- [ ] T001 Create monorepo directory structure per plan.md (all directories under `backend/app/`, `backend/tests/`, `frontend/src/`, `frontend/tests/`)
-- [ ] T002 [P] Create `docker-compose.yml` at project root with PostgreSQL 15 service (port 5432, volume for data persistence, `chatgpt_app` database)
-- [ ] T003 [P] Create `.env.example` at project root with all required env vars (`OPENAI_API_KEY`, `DATABASE_URL`, `LLM_MODEL`, `BACKEND_PORT`, `FRONTEND_URL`) and `.gitignore`
-- [ ] T004 [P] Initialize backend Python project: `backend/pyproject.toml` with FastAPI, LangChain, LangGraph, SQLAlchemy[asyncio], asyncpg, Alembic, pydantic-settings, uvicorn, pytest, pytest-asyncio, ruff, mypy dependencies
-- [ ] T005 [P] Initialize frontend Astro project: `frontend/package.json` with Astro, `@astrojs/react`, React, AI SDK (`ai`, `@ai-sdk/react`), `react-markdown`, `remark-gfm`, `react-syntax-highlighter`, Vitest, ESLint, Prettier; configure `frontend/astro.config.mjs` with React integration and `frontend/tsconfig.json` in strict mode
-- [ ] T006 Create `Makefile` at project root with all 16 mandatory targets per constitution (setup, dev, dev-backend, dev-frontend, test, test-unit, test-int, test-frontend, lint, format, typecheck, migrate, migration, docker-up, docker-down, clean, ci) plus `help` as default target with `## description` comments
+- [x] T001 Create monorepo directory structure per plan.md (all directories under `backend/app/`, `backend/tests/`, `frontend/src/`, `frontend/tests/`)
+- [x] T002 [P] Create `docker-compose.yml` at project root with PostgreSQL 15 service (port 5432, volume for data persistence, `chatgpt_app` database)
+- [x] T003 [P] Create `.env.example` at project root with all required env vars (`OPENAI_API_KEY`, `DATABASE_URL`, `LLM_MODEL`, `BACKEND_PORT`, `FRONTEND_URL`) and `.gitignore`
+- [x] T004 [P] Initialize backend Python project: `backend/pyproject.toml` with FastAPI, LangChain, LangGraph, SQLAlchemy[asyncio], asyncpg, Alembic, pydantic-settings, uvicorn, pytest, pytest-asyncio, ruff, mypy dependencies
+- [x] T005 [P] Initialize frontend Astro project: `frontend/package.json` with Astro, `@astrojs/react`, React, AI SDK (`ai`, `@ai-sdk/react`), `react-markdown`, `remark-gfm`, `react-syntax-highlighter`, Vitest, ESLint, Prettier; configure `frontend/astro.config.mjs` with React integration and `frontend/tsconfig.json` in strict mode
+- [x] T006 Create `Makefile` at project root with all 16 mandatory targets per constitution (setup, dev, dev-backend, dev-frontend, test, test-unit, test-int, test-frontend, lint, format, typecheck, migrate, migration, docker-up, docker-down, clean, ci) plus `help` as default target with `## description` comments
 
 ---
 
@@ -40,19 +40,19 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 [P] Create domain entities (`Conversation`, `Message` frozen dataclasses) in `backend/app/domain/entities.py` per data-model.md
-- [ ] T008 [P] Create repository protocols (`ConversationRepository`, `MessageRepository`) and LLM service protocol (`LLMService`) in `backend/app/domain/ports.py` using `typing.Protocol`
-- [ ] T009 [P] Create backend config with pydantic-settings (`Settings` class loading from env vars: `DATABASE_URL`, `OPENAI_API_KEY`, `LLM_MODEL`, `BACKEND_PORT`, `FRONTEND_URL`) in `backend/app/config.py`
-- [ ] T010 Create SQLAlchemy 2.0 async engine, `async_session_factory`, and `get_db_session` generator in `backend/app/infrastructure/database.py`
-- [ ] T011 [P] Create SQLAlchemy ORM models (`ConversationModel`, `MessageModel`) with UUID PKs, indexes, and cascade delete in `backend/app/infrastructure/models.py` per data-model.md
-- [ ] T012 Configure Alembic: create `backend/alembic.ini` and `backend/alembic/env.py` with async support and model auto-discovery; generate initial migration for Conversation and Message tables in `backend/alembic/versions/`
-- [ ] T013 Implement `SqlAlchemyConversationRepository` and `SqlAlchemyMessageRepository` in `backend/app/infrastructure/repositories.py` (all methods from Protocol)
-- [ ] T014 [P] Create all Pydantic request/response schemas in `backend/app/presentation/schemas.py` per contracts/api.md (`ConversationResponse`, `MessageResponse`, `ConversationDetailResponse`, `ConversationListResponse`, `CreateConversationRequest`, `UpdateConversationRequest`, `SendMessageRequest`)
-- [ ] T015 Create FastAPI app factory in `backend/app/main.py` with CORS middleware (allow frontend origin) and request-ID middleware in `backend/app/presentation/middleware.py`; configure structured JSON logging
-- [ ] T016 Create FastAPI dependency injection factories in `backend/app/presentation/dependencies.py`: `get_db_session`, `get_conversation_repo`, `get_message_repo`, `get_llm_service`, `get_settings`
-- [ ] T017 [P] Create shared test fixtures in `backend/tests/conftest.py` (mock LLM service, domain entity factories) and `backend/tests/integration/conftest.py` (async test DB session with transactional rollback, test app client)
-- [ ] T018 [P] Create frontend TypeScript interfaces in `frontend/src/types/index.ts` per contracts/api.md (`Conversation`, `Message`, `ConversationWithMessages`, `ConversationListResponse`, `SendMessageRequest`)
-- [ ] T019 [P] Create frontend API service client in `frontend/src/services/api.ts` with functions for all 6 API endpoints (listConversations, getConversation, createConversation, deleteConversation, updateTitle) using fetch; backend URL from `PUBLIC_API_URL` env var
+- [x] T007 [P] Create domain entities (`Conversation`, `Message` frozen dataclasses) in `backend/app/domain/entities.py` per data-model.md
+- [x] T008 [P] Create repository protocols (`ConversationRepository`, `MessageRepository`) and LLM service protocol (`LLMService`) in `backend/app/domain/ports.py` using `typing.Protocol`
+- [x] T009 [P] Create backend config with pydantic-settings (`Settings` class loading from env vars: `DATABASE_URL`, `OPENAI_API_KEY`, `LLM_MODEL`, `BACKEND_PORT`, `FRONTEND_URL`) in `backend/app/config.py`
+- [x] T010 Create SQLAlchemy 2.0 async engine, `async_session_factory`, and `get_db_session` generator in `backend/app/infrastructure/database.py`
+- [x] T011 [P] Create SQLAlchemy ORM models (`ConversationModel`, `MessageModel`) with UUID PKs, indexes, and cascade delete in `backend/app/infrastructure/models.py` per data-model.md
+- [x] T012 Configure Alembic: create `backend/alembic.ini` and `backend/alembic/env.py` with async support and model auto-discovery; generate initial migration for Conversation and Message tables in `backend/alembic/versions/`
+- [x] T013 Implement `SqlAlchemyConversationRepository` and `SqlAlchemyMessageRepository` in `backend/app/infrastructure/repositories.py` (all methods from Protocol)
+- [x] T014 [P] Create all Pydantic request/response schemas in `backend/app/presentation/schemas.py` per contracts/api.md (`ConversationResponse`, `MessageResponse`, `ConversationDetailResponse`, `ConversationListResponse`, `CreateConversationRequest`, `UpdateConversationRequest`, `SendMessageRequest`)
+- [x] T015 Create FastAPI app factory in `backend/app/main.py` with CORS middleware (allow frontend origin) and request-ID middleware in `backend/app/presentation/middleware.py`; configure structured JSON logging
+- [x] T016 Create FastAPI dependency injection factories in `backend/app/presentation/dependencies.py`: `get_db_session`, `get_conversation_repo`, `get_message_repo`, `get_llm_service`, `get_settings`
+- [x] T017 [P] Create shared test fixtures in `backend/tests/conftest.py` (mock LLM service, domain entity factories) and `backend/tests/integration/conftest.py` (async test DB session with transactional rollback, test app client)
+- [x] T018 [P] Create frontend TypeScript interfaces in `frontend/src/types/index.ts` per contracts/api.md (`Conversation`, `Message`, `ConversationWithMessages`, `ConversationListResponse`, `SendMessageRequest`)
+- [x] T019 [P] Create frontend API service client in `frontend/src/services/api.ts` with functions for all 6 API endpoints (listConversations, getConversation, createConversation, deleteConversation, updateTitle) using fetch; backend URL from `PUBLIC_API_URL` env var
 
 **Checkpoint**: Foundation ready — user story implementation can now begin in parallel
 
