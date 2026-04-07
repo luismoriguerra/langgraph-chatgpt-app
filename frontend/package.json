@@ -13,29 +13,30 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "astro": "^5.0.0",
+    "@ai-sdk/react": "^1.0.0",
+    "@astrojs/check": "^0.9.8",
     "@astrojs/react": "^4.0.0",
+    "ai": "^4.0.0",
+    "astro": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@ai-sdk/react": "^1.0.0",
-    "ai": "^4.0.0",
     "react-markdown": "^9.0.0",
-    "remark-gfm": "^4.0.0",
-    "react-syntax-highlighter": "^15.6.0"
+    "react-syntax-highlighter": "^15.6.0",
+    "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/react-syntax-highlighter": "^15.5.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.0.0",
-    "@testing-library/react": "^16.0.0",
-    "@testing-library/jest-dom": "^6.0.0",
-    "jsdom": "^25.0.0",
     "eslint": "^9.0.0",
-    "@eslint/js": "^9.0.0",
-    "typescript-eslint": "^8.0.0",
+    "jsdom": "^25.0.0",
     "prettier": "^3.3.0",
-    "prettier-plugin-astro": "^0.14.0"
+    "prettier-plugin-astro": "^0.14.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.0.0"
   }
 }

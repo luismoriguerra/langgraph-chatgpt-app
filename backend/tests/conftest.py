@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -13,13 +13,14 @@ def make_conversation():
         title: str = "Test conversation",
         id: uuid.UUID | None = None,
     ) -> Conversation:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return Conversation(
             id=id or uuid.uuid4(),
             title=title,
             created_at=now,
             updated_at=now,
         )
+
     return _make
 
 
@@ -36,8 +37,9 @@ def make_message():
             conversation_id=conversation_id or uuid.uuid4(),
             role=role,
             content=content,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
+
     return _make
 
 

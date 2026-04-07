@@ -31,6 +31,10 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(RequestIDMiddleware)
 
+    from app.presentation.routes.conversations import router as conversations_router
+
+    app.include_router(conversations_router)
+
     return app
 
 

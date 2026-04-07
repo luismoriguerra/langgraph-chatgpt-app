@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.domain.entities import Conversation, Message
 from app.infrastructure.models import ConversationModel, MessageModel
@@ -53,7 +52,7 @@ class SqlAlchemyConversationRepository:
         stmt = (
             update(ConversationModel)
             .where(ConversationModel.id == id)
-            .values(updated_at=datetime.now(timezone.utc))
+            .values(updated_at=datetime.utcnow())
         )
         await self._session.execute(stmt)
         await self._session.commit()
