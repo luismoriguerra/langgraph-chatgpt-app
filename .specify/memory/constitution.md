@@ -1,14 +1,16 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: N/A (initial) → 1.0.0
-  Modified principles: N/A (initial creation)
+  Version change: 1.1.0 → 1.2.0
+  Modified principles: None (all 7 principles unchanged)
   Added sections:
-    - Core Principles (7 principles)
-    - Technology Stack & Constraints
-    - Development Workflow & Quality Gates
-    - Governance
+    - Build Automation row in Technology Stack table
+    - "Makefile (Developer Experience)" subsection under
+      Development Workflow & Quality Gates
   Removed sections: None
+  Modified sections:
+    - "Database & Local Development": replaced vague "make target
+      or script" sentence with reference to the new Makefile section
   Templates requiring updates:
     - .specify/templates/plan-template.md ✅ reviewed (no changes needed)
     - .specify/templates/spec-template.md ✅ reviewed (no changes needed)
@@ -51,6 +53,9 @@ All service dependencies MUST be injected, never hard-coded:
 - LLM clients, vector stores, and external API clients MUST be
   injected as protocol-typed parameters so they can be replaced
   with test doubles.
+- Database sessions MUST be injected via FastAPI `Depends()` using
+  a session factory. No direct `Session()` instantiation inside
+  service or repository code.
 - No module-level singleton instantiation of stateful services.
   Factory functions or DI containers MUST be used instead.
 - Astro frontend MUST receive backend URLs and configuration
@@ -69,6 +74,9 @@ Every feature MUST follow the Red-Green-Refactor cycle:
 - Integration tests MUST verify LangGraph graph execution,
   FastAPI endpoint contracts, and LLM chain behavior using
   recorded/mocked responses.
+- Database integration tests MUST run against a real PostgreSQL
+  instance (via Docker Compose test profile) with transactional
+  rollback to ensure isolation between test cases.
 - Frontend component tests MUST verify Astro component rendering
   and user interaction flows.
 
@@ -93,6 +101,9 @@ Code MUST program against abstractions, not concrete implementations:
 
 - Python code MUST use `typing.Protocol` or `abc.ABC` to define
   service boundaries (LLM providers, storage, retrieval, etc.).
+- Repository interfaces MUST abstract all database access. Domain
+  and application layers MUST NOT import SQLAlchemy models or
+  session objects directly.
 - TypeScript code in Astro MUST use interfaces for API response
   types and service contracts.
 - LangGraph nodes MUST accept typed state objects and return typed
@@ -130,18 +141,23 @@ Start with the simplest viable solution:
 
 ## Technology Stack & Constraints
 
-| Concern       | Technology                        | Version Policy       |
-|---------------|-----------------------------------|----------------------|
-| Backend API   | FastAPI                           | Latest stable        |
-| AI Framework  | LangChain + LangGraph             | Latest stable        |
-| Frontend      | Astro                             | Latest stable        |
-| Language (BE) | Python 3.11+                      | Minimum 3.11         |
-| Language (FE) | TypeScript                        | Strict mode required |
-| Testing (BE)  | pytest + pytest-asyncio           | Latest stable        |
-| Testing (FE)  | Vitest or Astro test utilities    | Latest stable        |
-| Linting (BE)  | Ruff                              | Latest stable        |
-| Linting (FE)  | ESLint + Prettier                 | Latest stable        |
-| Type Check    | mypy (BE) + TypeScript strict (FE)| Enforced in CI       |
+| Concern        | Technology                        | Version Policy       |
+|----------------|-----------------------------------|----------------------|
+| Backend API    | FastAPI                           | Latest stable        |
+| AI Framework   | LangChain + LangGraph             | Latest stable        |
+| Frontend       | Astro                             | Latest stable        |
+| Language (BE)  | Python 3.11+                      | Minimum 3.11         |
+| Language (FE)  | TypeScript                        | Strict mode required |
+| Database       | PostgreSQL                        | Latest stable (15+)  |
+| ORM            | SQLAlchemy 2.0 (async)            | Latest stable        |
+| Migrations     | Alembic                           | Latest stable        |
+| Local Dev      | Docker Compose                    | Latest stable        |
+| Build Automate | GNU Make (Makefile)               | Any                  |
+| Testing (BE)   | pytest + pytest-asyncio           | Latest stable        |
+| Testing (FE)   | Vitest or Astro test utilities    | Latest stable        |
+| Linting (BE)   | Ruff                              | Latest stable        |
+| Linting (FE)   | ESLint + Prettier                 | Latest stable        |
+| Type Check     | mypy (BE) + TypeScript strict (FE)| Enforced in CI       |
 
 **Constraints**:
 
@@ -154,7 +170,73 @@ Start with the simplest viable solution:
 - LLM API keys and sensitive credentials MUST never appear in
   code, logs, or version control.
 
+**Database & Local Development**:
+
+- A `docker-compose.yml` at the project root MUST define at
+  minimum a PostgreSQL service for local development. Additional
+  services (Redis, vector stores) MUST be added to the same
+  Compose file as needed.
+- The backend MUST connect to PostgreSQL using SQLAlchemy 2.0
+  async engine. Connection strings MUST be loaded from environment
+  variables (`DATABASE_URL`), never hardcoded.
+- All schema changes MUST be managed through Alembic migrations.
+  Direct DDL execution against the database is prohibited.
+- Every Alembic migration MUST include both `upgrade()` and
+  `downgrade()` functions. Migrations without a reversible
+  downgrade path MUST document the rationale in the migration
+  file docstring.
+- Alembic's `env.py` MUST auto-discover SQLAlchemy models from
+  the infrastructure layer to enable `--autogenerate` support.
+- Developers MUST use the root `Makefile` to bootstrap and
+  operate the local environment (see Makefile section below).
+
 ## Development Workflow & Quality Gates
+
+### Makefile (Developer Experience)
+
+A `Makefile` MUST exist at the project root and serve as the
+single entry point for all common development operations. Every
+developer interaction (bootstrapping, running, testing, linting)
+MUST be achievable through a `make` target.
+
+**Mandatory targets**:
+
+| Target              | Purpose                                              |
+|---------------------|------------------------------------------------------|
+| `make setup`        | Full bootstrap: install Python + Node deps, copy `.env.example` to `.env` if missing, `docker compose up -d`, `alembic upgrade head` |
+| `make dev`          | Start backend (FastAPI with reload) and frontend (Astro dev server) concurrently |
+| `make dev-backend`  | Start only the FastAPI dev server with auto-reload    |
+| `make dev-frontend` | Start only the Astro dev server                      |
+| `make test`         | Run all tests (unit + integration) for backend and frontend |
+| `make test-unit`    | Run backend unit tests only (`pytest tests/unit`)    |
+| `make test-int`     | Run backend integration tests only (`pytest tests/integration`) |
+| `make test-frontend`| Run frontend tests                                   |
+| `make lint`         | Run all linters: `ruff check` (BE) + `eslint` (FE)  |
+| `make format`       | Auto-format all code: `ruff format` (BE) + `prettier --write` (FE) |
+| `make typecheck`    | Run `mypy --strict` (BE) + `tsc --noEmit` (FE)      |
+| `make migrate`      | Run `alembic upgrade head`                           |
+| `make migration`    | Generate a new Alembic migration (`alembic revision --autogenerate -m "..."`) |
+| `make docker-up`    | Start Docker Compose services in detached mode       |
+| `make docker-down`  | Stop and remove Docker Compose services              |
+| `make clean`        | Remove build artifacts, caches, `__pycache__`, `.mypy_cache`, `node_modules` |
+| `make ci`           | Run the full CI pipeline locally: lint + typecheck + test + coverage |
+
+**Makefile rules**:
+
+- Each target MUST include a brief `## description` comment so
+  that `make help` can auto-generate a usage summary.
+- The default target (`make` with no arguments) MUST print the
+  help summary.
+- Targets MUST NOT silently swallow errors. All commands MUST
+  propagate exit codes so failures are visible.
+- Targets that depend on Docker Compose services MUST verify
+  containers are running before proceeding, or start them
+  automatically.
+- The `make setup` target MUST be idempotent: running it
+  multiple times MUST NOT corrupt the local environment.
+- New Makefile targets MAY be added as the project evolves, but
+  the mandatory targets listed above MUST NOT be removed or
+  renamed without a constitution amendment.
 
 ### Branch Strategy
 
@@ -170,10 +252,14 @@ Every pull request MUST pass all gates before merge:
    report zero errors.
 2. **Type Check**: `mypy --strict` (backend) and `tsc --noEmit`
    (frontend) report zero errors.
-3. **Unit Tests**: `pytest tests/unit` and frontend unit tests
+3. **Migrations**: `alembic check` MUST confirm no model changes
+   are missing a corresponding migration. `alembic upgrade head`
+   MUST run without errors against a clean database.
+4. **Unit Tests**: `pytest tests/unit` and frontend unit tests
    pass with 100% of tests green.
-4. **Integration Tests**: `pytest tests/integration` passes.
-5. **Coverage**: Code coverage MUST NOT decrease. New code MUST
+5. **Integration Tests**: `pytest tests/integration` passes
+   (requires PostgreSQL via Docker Compose).
+6. **Coverage**: Code coverage MUST NOT decrease. New code MUST
    have >= 80% line coverage.
 
 ### Code Review Standards
@@ -184,6 +270,8 @@ Every pull request MUST pass all gates before merge:
   instantiated inline (Principle II).
 - Reviewers MUST verify tests exist and were written before
   implementation (Principle III).
+- Reviewers MUST verify that database schema changes are
+  accompanied by an Alembic migration with a valid downgrade.
 
 ## Governance
 
@@ -206,4 +294,4 @@ architectural and process decisions in this project.
   MAJOR for principle removals/redefinitions, MINOR for new
   principles or material expansions, PATCH for clarifications.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-07 | **Last Amended**: 2026-04-07
+**Version**: 1.2.0 | **Ratified**: 2026-04-07 | **Last Amended**: 2026-04-07
