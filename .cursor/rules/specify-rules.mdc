@@ -1,0 +1,35 @@
+---
+description: Project Development Guidelines
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# lang-001 Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-04-07
+
+## Active Technologies
+
+- Python 3.11+ (backend), TypeScript strict (frontend) + FastAPI, LangChain, LangGraph, SQLAlchemy 2.0 async, Alembic (BE); Astro, Vercel AI SDK, React (islands), react-markdown (FE) (001-chatgpt-app)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] pytest [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] ruff check .
+
+## Code Style
+
+Python 3.11+ (backend), TypeScript strict (frontend): Follow standard conventions
+
+## Recent Changes
+
+- 001-chatgpt-app: Added Python 3.11+ (backend), TypeScript strict (frontend) + FastAPI, LangChain, LangGraph, SQLAlchemy 2.0 async, Alembic (BE); Astro, Vercel AI SDK, React (islands), react-markdown (FE)
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
