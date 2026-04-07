@@ -17,10 +17,10 @@
 
 **Purpose**: Add new dependencies and database schema
 
-- [ ] T001 Add `langchain-community>=0.3.0` and `duckduckgo-search>=6.0.0` to backend/pyproject.toml dependencies
-- [ ] T002 [P] Add Playwright to frontend devDependencies and create playwright.config.ts in frontend/
-- [ ] T003 [P] Create Alembic migration for `tool_invocations` table with both `upgrade()` and `downgrade()` functions in backend/alembic/versions/
-- [ ] T004 [P] Add `make test-e2e` target to Makefile at project root
+- [x] T001 Add `langchain-community>=0.3.0` and `duckduckgo-search>=6.0.0` to backend/pyproject.toml dependencies
+- [x] T002 [P] Add Playwright to frontend devDependencies and create playwright.config.ts in frontend/
+- [x] T003 [P] Create Alembic migration for `tool_invocations` table with both `upgrade()` and `downgrade()` functions in backend/alembic/versions/
+- [x] T004 [P] Add `make test-e2e` target to Makefile at project root
 
 ---
 
@@ -34,17 +34,17 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T005 [P] Unit tests for SearchResult and ToolInvocation entity validation in backend/tests/unit/test_entities.py
-- [ ] T006 [P] Unit tests for ToolInvocationResponse and updated MessageResponse schemas in backend/tests/unit/test_schemas.py
+- [x] T005 [P] Unit tests for SearchResult and ToolInvocation entity validation in backend/tests/unit/test_entities.py
+- [x] T006 [P] Unit tests for ToolInvocationResponse and updated MessageResponse schemas in backend/tests/unit/test_schemas.py
 
 ### Implementation for Foundational Phase
 
-- [ ] T007 [P] Add `SearchResult` and `ToolInvocation` frozen dataclasses in backend/app/domain/entities.py
-- [ ] T008 [P] Add `ChatEvent` TypedDict, `ToolInvocationRepository` protocol, and `stream_agent_chat` method to `LLMService` protocol in backend/app/domain/ports.py
-- [ ] T009 [P] Add `ToolInvocationModel` SQLAlchemy model with FK to messages in backend/app/infrastructure/models.py
-- [ ] T010 Add `SqlAlchemyToolInvocationRepository` implementing the protocol in backend/app/infrastructure/repositories.py
-- [ ] T011 [P] Add `ToolInvocationResponse`, `SearchResultResponse` Pydantic models and add `tool_invocations` field to `MessageResponse` in backend/app/presentation/schemas.py
-- [ ] T012 [P] Add `ToolInvocation` and `Source` TypeScript interfaces and update `Message` interface to include optional `tool_invocations` field in frontend/src/types/index.ts
+- [x] T007 [P] Add `SearchResult` and `ToolInvocation` frozen dataclasses in backend/app/domain/entities.py
+- [x] T008 [P] Add `ChatEvent` TypedDict, `ToolInvocationRepository` protocol, and `stream_agent_chat` method to `LLMService` protocol in backend/app/domain/ports.py
+- [x] T009 [P] Add `ToolInvocationModel` SQLAlchemy model with FK to messages in backend/app/infrastructure/models.py
+- [x] T010 Add `SqlAlchemyToolInvocationRepository` implementing the protocol in backend/app/infrastructure/repositories.py
+- [x] T011 [P] Add `ToolInvocationResponse`, `SearchResultResponse` Pydantic models and add `tool_invocations` field to `MessageResponse` in backend/app/presentation/schemas.py
+- [x] T012 [P] Add `ToolInvocation` and `Source` TypeScript interfaces and update `Message` interface to include optional `tool_invocations` field in frontend/src/types/index.ts
 
 **Checkpoint**: Foundation ready — domain entities, ports, DB model, schemas, and types in place. User story implementation can now begin.
 
@@ -60,21 +60,21 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T014 [P] [US1] Unit tests for `build_chat_agent()` (tool binding, agent creation) in backend/tests/unit/test_chat_graph.py
-- [ ] T015 [P] [US1] Unit tests for `AgentLLMService.stream_agent_chat()` (event yielding, max 3 tool calls, error handling) in backend/tests/unit/test_agent_service.py
-- [ ] T016 [P] [US1] Unit tests for `send_message_with_agent()` use case (persist user msg, stream agent, persist assistant msg + tool invocations) in backend/tests/unit/test_chat_use_case.py
-- [ ] T017 [P] [US1] Unit tests for updated chat SSE route handler (tool-start, tool-end, sources, text-delta events) in backend/tests/unit/test_chat_route.py
+- [x] T014 [P] [US1] Unit tests for `build_chat_agent()` (tool binding, agent creation) in backend/tests/unit/test_chat_graph.py
+- [x] T015 [P] [US1] Unit tests for `AgentLLMService.stream_agent_chat()` (event yielding, max 3 tool calls, error handling) in backend/tests/unit/test_agent_service.py
+- [x] T016 [P] [US1] Unit tests for `send_message_with_agent()` use case (persist user msg, stream agent, persist assistant msg + tool invocations) in backend/tests/unit/test_chat_use_case.py
+- [x] T017 [P] [US1] Unit tests for updated chat SSE route handler (tool-start, tool-end, sources, text-delta events) in backend/tests/unit/test_chat_route.py
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Implement `build_chat_agent()` using `create_react_agent` with `DuckDuckGoSearchResults` bound via `bind_tools` in backend/app/application/chat_graph.py
-- [ ] T019 [US1] Implement `AgentLLMService.stream_agent_chat()` using `astream_events(version="v2")` to yield `ChatEvent` objects in backend/app/infrastructure/llm_service.py
-- [ ] T020 [US1] Implement `send_message_with_agent()` use case: persist user message, run agent, collect tool invocations, persist assistant message and tool invocations in backend/app/application/use_cases.py
-- [ ] T021 [US1] Update chat SSE route handler to use `send_message_with_agent()` and emit tool-start, tool-end, sources, text-delta events in backend/app/presentation/routes/chat.py
-- [ ] T022 [US1] Update conversation detail route to eagerly load and include `tool_invocations` in message responses in backend/app/presentation/routes/conversations.py
-- [ ] T023 [US1] Update ChatView.tsx SSE parser to handle `tool-start`, `tool-end`, and `sources` event types and store sources in state in frontend/src/components/ChatView.tsx
-- [ ] T024 [US1] Update MessageBubble.tsx to render markdown with clickable source links (numbered references rendered via react-markdown) in frontend/src/components/MessageBubble.tsx
-- [ ] T025 [US1] Integration test: agent chat endpoint returns tool-start/tool-end/sources/text-delta events for a search query in backend/tests/integration/test_chat.py
+- [x] T018 [US1] Implement `build_chat_agent()` using `create_react_agent` with `DuckDuckGoSearchResults` bound via `bind_tools` in backend/app/application/chat_graph.py
+- [x] T019 [US1] Implement `AgentLLMService.stream_agent_chat()` using `astream_events(version="v2")` to yield `ChatEvent` objects in backend/app/infrastructure/llm_service.py
+- [x] T020 [US1] Implement `send_message_with_agent()` use case: persist user message, run agent, collect tool invocations, persist assistant message and tool invocations in backend/app/application/use_cases.py
+- [x] T021 [US1] Update chat SSE route handler to use `send_message_with_agent()` and emit tool-start, tool-end, sources, text-delta events in backend/app/presentation/routes/chat.py
+- [x] T022 [US1] Update conversation detail route to eagerly load and include `tool_invocations` in message responses in backend/app/presentation/routes/conversations.py
+- [x] T023 [US1] Update ChatView.tsx SSE parser to handle `tool-start`, `tool-end`, and `sources` event types and store sources in state in frontend/src/components/ChatView.tsx
+- [x] T024 [US1] Update MessageBubble.tsx to render markdown with clickable source links (numbered references rendered via react-markdown) in frontend/src/components/MessageBubble.tsx
+- [x] T025 [US1] Integration test: agent chat endpoint returns tool-start/tool-end/sources/text-delta events for a search query in backend/tests/integration/test_chat.py
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. The AI can search the web, stream answers with source citations, and persist everything.
 
@@ -90,13 +90,13 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T026 [P] [US2] Unit test for SearchIndicator component (renders text, animates, accepts visible prop) in frontend/tests/SearchIndicator.test.tsx
-- [ ] T027 [P] [US2] Unit test for ChatView tool-start/tool-end state transitions (indicator shows/hides correctly) in frontend/tests/ChatView.test.tsx
+- [x] T026 [P] [US2] Unit test for SearchIndicator component (renders text, animates, accepts visible prop) in frontend/tests/SearchIndicator.test.tsx
+- [x] T027 [P] [US2] Unit test for ChatView tool-start/tool-end state transitions (indicator shows/hides correctly) in frontend/tests/ChatView.test.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Create SearchIndicator.tsx component with "Searching the web..." text and animation in frontend/src/components/SearchIndicator.tsx
-- [ ] T029 [US2] Integrate SearchIndicator into ChatView.tsx: show on tool-start, hide on first text-delta after tool-end in frontend/src/components/ChatView.tsx
+- [x] T028 [US2] Create SearchIndicator.tsx component with "Searching the web..." text and animation in frontend/src/components/SearchIndicator.tsx
+- [x] T029 [US2] Integrate SearchIndicator into ChatView.tsx: show on tool-start, hide on first text-delta after tool-end in frontend/src/components/ChatView.tsx
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Users see when the AI is searching.
 
@@ -112,13 +112,13 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T030 [P] [US3] Unit test for `send_message_with_agent()` with multi-turn history containing prior tool invocations in backend/tests/unit/test_chat_use_case.py
-- [ ] T031 [P] [US3] Unit test for conversation reload: tool_invocations load from API and render source links in frontend/tests/ChatView.test.tsx
+- [x] T030 [P] [US3] Unit test for `send_message_with_agent()` with multi-turn history containing prior tool invocations in backend/tests/unit/test_chat_use_case.py
+- [x] T031 [P] [US3] Unit test for conversation reload: tool_invocations load from API and render source links in frontend/tests/ChatView.test.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Ensure `send_message_with_agent()` passes full conversation history (including prior tool-augmented turns) to the agent in backend/app/application/use_cases.py
-- [ ] T033 [US3] Ensure ChatView loads and renders tool_invocations from GET conversation response on page reload in frontend/src/components/ChatView.tsx
+- [x] T032 [US3] Ensure `send_message_with_agent()` passes full conversation history (including prior tool-augmented turns) to the agent in backend/app/application/use_cases.py
+- [x] T033 [US3] Ensure ChatView loads and renders tool_invocations from GET conversation response on page reload in frontend/src/components/ChatView.tsx
 
 **Checkpoint**: All user stories should now be independently functional. Multi-turn context works with search.
 
@@ -130,17 +130,17 @@
 
 ### Playwright E2E Tests (MANDATORY)
 
-- [ ] T034 [P] Playwright E2E: user asks current-events question → search indicator appears → answer streams with source citations in frontend/e2e/web-search.spec.ts
-- [ ] T035 [P] Playwright E2E: user asks knowledge question → no search indicator → direct answer without sources in frontend/e2e/web-search.spec.ts
-- [ ] T036 Playwright E2E: user reloads page → previous conversation loads with source links intact in frontend/e2e/web-search.spec.ts
-- [ ] T037 Playwright E2E: multi-turn search with pronoun disambiguation in frontend/e2e/web-search.spec.ts
-- [ ] T038 Playwright E2E: search service failure → graceful fallback with disclaimer (error/edge-case scenario per Constitution Principle III) in frontend/e2e/web-search.spec.ts
+- [x] T034 [P] Playwright E2E: user asks current-events question → search indicator appears → answer streams with source citations in frontend/e2e/web-search.spec.ts
+- [x] T035 [P] Playwright E2E: user asks knowledge question → no search indicator → direct answer without sources in frontend/e2e/web-search.spec.ts
+- [x] T036 Playwright E2E: user reloads page → previous conversation loads with source links intact in frontend/e2e/web-search.spec.ts
+- [x] T037 Playwright E2E: multi-turn search with pronoun disambiguation in frontend/e2e/web-search.spec.ts
+- [x] T038 Playwright E2E: search service failure → graceful fallback with disclaimer (error/edge-case scenario per Constitution Principle III) in frontend/e2e/web-search.spec.ts
 
 ### Cross-Cutting Concerns
 
-- [ ] T039 [P] Add structured logging for agent tool invocations (tool name, input, latency, request ID) in backend/app/infrastructure/llm_service.py
-- [ ] T040 [P] Add graceful error handling for DuckDuckGo search failures (timeout, rate limit) with fallback to LLM-only response in backend/app/infrastructure/llm_service.py
-- [ ] T041 Run full existing test suite (`make test`) to verify zero regressions (FR-010, SC-004)
+- [x] T039 [P] Add structured logging for agent tool invocations (tool name, input, latency, request ID) in backend/app/infrastructure/llm_service.py
+- [x] T040 [P] Add graceful error handling for DuckDuckGo search failures (timeout, rate limit) with fallback to LLM-only response in backend/app/infrastructure/llm_service.py
+- [x] T041 Run full existing test suite (`make test`) to verify zero regressions (FR-010, SC-004)
 - [ ] T042 Run quickstart.md verification steps end-to-end
 
 ---

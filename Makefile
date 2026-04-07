@@ -7,7 +7,7 @@ VENV := $(BACKEND_DIR)/.venv
 PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 
-.PHONY: help setup dev dev-backend dev-frontend test test-unit test-int test-frontend lint format typecheck migrate migration docker-up docker-down clean ci
+.PHONY: help setup dev dev-backend dev-frontend test test-unit test-int test-frontend test-e2e lint format typecheck migrate migration docker-up docker-down clean ci
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -52,6 +52,9 @@ test-int: ## Run backend integration tests (requires Docker)
 
 test-frontend: ## Run frontend tests
 	cd $(FRONTEND_DIR) && npm run test
+
+test-e2e: ## Run Playwright E2E tests against the full stack
+	cd $(FRONTEND_DIR) && npx playwright test
 
 lint: ## Run all linters
 	cd $(BACKEND_DIR) && $(VENV)/bin/ruff check .

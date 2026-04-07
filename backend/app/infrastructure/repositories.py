@@ -4,8 +4,8 @@ from uuid import UUID
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.entities import Conversation, Message
-from app.infrastructure.models import ConversationModel, MessageModel
+from app.domain.entities import Conversation, Message, SearchResult, ToolInvocation
+from app.infrastructure.models import ConversationModel, MessageModel, ToolInvocationModel
 
 
 class SqlAlchemyConversationRepository:
@@ -105,5 +105,63 @@ class SqlAlchemyMessageRepository:
             conversation_id=model.conversation_id,
             role=model.role,
             content=model.content,
+            created_at=model.created_at,
+        )
+
+
+class SqlAlchemyToolInvocationRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def create(self, invocation: ToolInvocation) -> ToolInvocation:
+        output_json = [
+            {"title": sr.title, "snippet": sr.snippet, "url": sr.url}
+            for sr in invocation.tool_output
+        ]
+        model = ToolInvocationModel(
+            id=invocation.id,
+            message_id=invocation.message_id,
+            tool_name=invocation.tool_name,
+            tool_input=invocation.tool_input,
+            tool_output=output_json,
+            created_at=invocation.created_at,
+        )
+        self._session.add(model)
+        await self._session.commit()
+        await self._session.refresh(model)
+        return self._to_entity(model)
+
+    async def list_by_message(self, message_id: UUID) -> list[ToolInvocation]:
+        stmt = (
+            select(ToolInvocationModel)
+            .where(ToolInvocationModel.message_id == message_id)
+            .order_by(ToolInvocationModel.created_at.asc())
+        )
+        result = await self._session.execute(stmt)
+        return [self._to_entity(row) for row in result.scalars().all()]
+
+    async def list_by_conversation(self, conversation_id: UUID) -> list[ToolInvocation]:
+        stmt = (
+            select(ToolInvocationModel)
+            .join(MessageModel, ToolInvocationModel.message_id == MessageModel.id)
+            .where(MessageModel.conversation_id == conversation_id)
+            .order_by(ToolInvocationModel.created_at.asc())
+        )
+        result = await self._session.execute(stmt)
+        return [self._to_entity(row) for row in result.scalars().all()]
+
+    @staticmethod
+    def _to_entity(model: ToolInvocationModel) -> ToolInvocation:
+        raw = model.tool_output or []
+        results = [
+            SearchResult(title=item["title"], snippet=item["snippet"], url=item["url"])
+            for item in raw
+        ]
+        return ToolInvocation(
+            id=model.id,
+            message_id=model.message_id,
+            tool_name=model.tool_name,
+            tool_input=model.tool_input,
+            tool_output=results,
             created_at=model.created_at,
         )

@@ -1,7 +1,7 @@
 import json
 import uuid
-from collections.abc import AsyncIterator
-from typing import Annotated
+from collections.abc import AsyncIterator, Callable
+from typing import Annotated, Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,12 +14,24 @@ from app.infrastructure.llm_service import OpenAILLMService
 from app.infrastructure.repositories import (
     SqlAlchemyConversationRepository,
     SqlAlchemyMessageRepository,
+    SqlAlchemyToolInvocationRepository,
 )
 from app.presentation.schemas import SendMessageRequest
 
 logger = structlog.get_logger()
 
 router = APIRouter(prefix="/api/conversations", tags=["chat"])
+
+_SSE_SERIALIZERS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+    "text-delta": lambda d: {"type": "text-delta", "textDelta": d["textDelta"]},
+    "tool-start": lambda d: {
+        "type": "tool-start",
+        "toolName": d["toolName"],
+        "toolInput": d["toolInput"],
+    },
+    "tool-end": lambda d: {"type": "tool-end", "toolName": d["toolName"]},
+    "sources": lambda d: {"type": "sources", "sources": d["sources"]},
+}
 
 
 @router.post("/{conversation_id}/chat")
@@ -30,6 +42,7 @@ async def chat_stream(
 ) -> StreamingResponse:
     conv_repo = SqlAlchemyConversationRepository(session)
     msg_repo = SqlAlchemyMessageRepository(session)
+    tool_repo = SqlAlchemyToolInvocationRepository(session)
     llm_service = OpenAILLMService()
 
     conversation = await conv_repo.get_by_id(conversation_id)
@@ -38,16 +51,17 @@ async def chat_stream(
 
     async def event_stream() -> AsyncIterator[str]:
         try:
-            async for token in use_cases.send_message(
+            async for event in use_cases.send_message_with_agent(
                 conversation_id=conversation_id,
                 user_content=body.message,
                 conv_repo=conv_repo,
                 msg_repo=msg_repo,
+                tool_repo=tool_repo,
                 llm_service=llm_service,
             ):
-                if token:
-                    data = json.dumps({"type": "text-delta", "textDelta": token})
-                    yield f"data: {data}\n\n"
+                serializer = _SSE_SERIALIZERS.get(event["type"])
+                if serializer:
+                    yield f"data: {json.dumps(serializer(event['data']))}\n\n"
 
             finish = json.dumps({"type": "finish", "finishReason": "stop"})
             yield f"data: {finish}\n\n"
