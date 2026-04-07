@@ -74,20 +74,27 @@
 - [ ] T023 [P] [US1] Write integration tests for chat streaming endpoint (`POST /api/conversations/:id/chat`) and create-conversation endpoint (`POST /api/conversations`) in `backend/tests/integration/test_chat_routes.py`
 - [ ] T024 [P] [US1] Write integration tests for conversation and message repositories (CRUD operations, cascade delete) in `backend/tests/integration/test_repositories.py`
 
+### Frontend Tests for User Story 1
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before frontend implementation**
+
+- [ ] T025 [P] [US1] Write frontend component test for MessageBubble (markdown rendering for assistant messages, plain text for user messages, code block syntax highlighting) in `frontend/tests/components/MessageBubble.test.tsx`
+- [ ] T026 [P] [US1] Write frontend component test for ChatView (message list rendering, loading indicator, error display with retry, streaming state) in `frontend/tests/components/ChatView.test.tsx`
+
 ### Implementation for User Story 1
 
-- [ ] T025 [US1] Implement LLM service (LangChain ChatModel wrapper with streaming support) in `backend/app/infrastructure/llm_service.py`
-- [ ] T026 [US1] Implement chat LangGraph graph (prepare_messages + generate_response nodes) in `backend/app/application/chat_graph.py` per research.md R2
-- [ ] T027 [US1] Implement title LangGraph graph (generate_title node, <=60 char summary) in `backend/app/application/chat_graph.py`
-- [ ] T028 [US1] Implement use cases (CreateConversationUseCase, SendMessageUseCase with streaming, GenerateTitleUseCase as background task with truncation fallback) in `backend/app/application/use_cases.py`
-- [ ] T029 [US1] Implement create-conversation route (`POST /api/conversations`) in `backend/app/presentation/routes/conversations.py`
-- [ ] T030 [US1] Implement streaming chat route (`POST /api/conversations/:id/chat`) with SSE in AI SDK protocol format in `backend/app/presentation/routes/chat.py` per research.md R1/R6
-- [ ] T031 [US1] Register conversation and chat routers in `backend/app/main.py`
-- [ ] T032 [P] [US1] Create ChatInput component (textarea with Enter-to-send, Shift+Enter for newline, Send button, empty-message prevention) in `frontend/src/components/ChatInput.tsx`
-- [ ] T033 [P] [US1] Create MessageBubble component with react-markdown, remark-gfm, and react-syntax-highlighter for AI responses; plain text for user messages in `frontend/src/components/MessageBubble.tsx`
-- [ ] T034 [US1] Create ChatView component using AI SDK `useChat` hook for streaming, message list rendering with MessageBubble, loading indicator, error display with retry in `frontend/src/components/ChatView.tsx`
-- [ ] T035 [US1] Create ChatLayout with sidebar placeholder and content area grid in `frontend/src/layouts/ChatLayout.astro`
-- [ ] T036 [US1] Create index page rendering ChatLayout with ChatView as React island (`client:load`) in `frontend/src/pages/index.astro`
+- [ ] T027 [US1] Implement LLM service (LangChain ChatModel wrapper with streaming support, baseline LangChain callback tracing) in `backend/app/infrastructure/llm_service.py`
+- [ ] T028 [US1] Implement chat LangGraph graph (prepare_messages + generate_response nodes) using a typed `TypedDict` state class (not raw dicts, per Constitution V) in `backend/app/application/chat_graph.py` per research.md R2
+- [ ] T029 [US1] Implement title LangGraph graph (generate_title node, <=60 char summary) using a typed state class in `backend/app/application/chat_graph.py`
+- [ ] T030 [US1] Implement use cases (CreateConversationUseCase, SendMessageUseCase with streaming, GenerateTitleUseCase as background task with truncation fallback) in `backend/app/application/use_cases.py`
+- [ ] T031 [US1] Implement create-conversation route (`POST /api/conversations`) in `backend/app/presentation/routes/conversations.py`
+- [ ] T032 [US1] Implement streaming chat route (`POST /api/conversations/:id/chat`) with SSE in AI SDK protocol format in `backend/app/presentation/routes/chat.py` per research.md R1/R6
+- [ ] T033 [US1] Register conversation and chat routers in `backend/app/main.py`
+- [ ] T034 [P] [US1] Create ChatInput component (textarea with Enter-to-send, Shift+Enter for newline, Send button, empty-message prevention) in `frontend/src/components/ChatInput.tsx`
+- [ ] T035 [P] [US1] Create MessageBubble component with react-markdown, remark-gfm, and react-syntax-highlighter for AI responses; plain text for user messages in `frontend/src/components/MessageBubble.tsx`
+- [ ] T036 [US1] Create ChatView component using AI SDK `useChat` hook for streaming, message list rendering with MessageBubble, loading indicator, error display with retry in `frontend/src/components/ChatView.tsx`
+- [ ] T037 [US1] Create ChatLayout with sidebar placeholder and content area grid in `frontend/src/layouts/ChatLayout.astro`
+- [ ] T038 [US1] Create index page rendering ChatLayout with ChatView as React island (`client:load`) in `frontend/src/pages/index.astro`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional — user can send messages and receive streamed, markdown-rendered AI responses. Sidebar is a placeholder. This is the MVP.
 
@@ -99,21 +106,27 @@
 
 **Independent Test**: Create several conversations → refresh → verify sidebar lists them → click one → verify messages load → delete one → verify removed
 
-### Tests for User Story 2
+### Backend Tests for User Story 2
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T037 [P] [US2] Write integration tests for list-conversations endpoint (`GET /api/conversations`), get-conversation endpoint (`GET /api/conversations/:id`), delete-conversation endpoint (`DELETE /api/conversations/:id`), and update-title endpoint (`PATCH /api/conversations/:id`) in `backend/tests/integration/test_conversation_routes.py`
+- [ ] T039 [P] [US2] Write integration tests for list-conversations endpoint (`GET /api/conversations`), get-conversation endpoint (`GET /api/conversations/:id`), delete-conversation endpoint (`DELETE /api/conversations/:id`), and update-title endpoint (`PATCH /api/conversations/:id`) in `backend/tests/integration/test_conversation_routes.py`
+
+### Frontend Tests for User Story 2
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before frontend implementation**
+
+- [ ] T040 [P] [US2] Write frontend component test for Sidebar (renders conversation list, click to select, delete triggers ConfirmDialog, active highlight, scroll behavior) in `frontend/tests/components/Sidebar.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T038 [US2] Implement list-conversations route (`GET /api/conversations` with limit/offset, ordered by updated_at DESC) in `backend/app/presentation/routes/conversations.py`
-- [ ] T039 [US2] Implement get-conversation-with-messages route (`GET /api/conversations/:id`) in `backend/app/presentation/routes/conversations.py`
-- [ ] T040 [US2] Implement delete-conversation route (`DELETE /api/conversations/:id`, cascade) in `backend/app/presentation/routes/conversations.py`
-- [ ] T041 [US2] Implement update-title route (`PATCH /api/conversations/:id`) in `backend/app/presentation/routes/conversations.py`
-- [ ] T042 [P] [US2] Create ConfirmDialog component (modal with confirm/cancel buttons) in `frontend/src/components/ConfirmDialog.tsx`
-- [ ] T043 [US2] Create Sidebar component (conversation list from API, click to select, delete button per entry with ConfirmDialog, scroll for 20+ items, active conversation highlight) in `frontend/src/components/Sidebar.tsx`
-- [ ] T044 [US2] Integrate Sidebar into ChatLayout as React island (`client:load`); wire conversation selection to ChatView (load messages via API, continue chatting); wire delete to clear active view if deleted conversation was active in `frontend/src/layouts/ChatLayout.astro` and `frontend/src/pages/index.astro`
+- [ ] T041 [US2] Implement list-conversations route (`GET /api/conversations` with limit/offset, ordered by updated_at DESC) in `backend/app/presentation/routes/conversations.py`
+- [ ] T042 [US2] Implement get-conversation-with-messages route (`GET /api/conversations/:id`) in `backend/app/presentation/routes/conversations.py`
+- [ ] T043 [US2] Implement delete-conversation route (`DELETE /api/conversations/:id`, cascade) in `backend/app/presentation/routes/conversations.py`
+- [ ] T044 [US2] Implement update-title route (`PATCH /api/conversations/:id`) in `backend/app/presentation/routes/conversations.py`
+- [ ] T045 [P] [US2] Create ConfirmDialog component (modal with confirm/cancel buttons) in `frontend/src/components/ConfirmDialog.tsx`
+- [ ] T046 [US2] Create Sidebar component (conversation list from API, click to select, delete button per entry with ConfirmDialog, scroll for 20+ items, active conversation highlight) in `frontend/src/components/Sidebar.tsx`
+- [ ] T047 [US2] Integrate Sidebar into ChatLayout as React island (`client:load`); wire conversation selection to ChatView (load messages via API, continue chatting); wire delete to clear active view if deleted conversation was active in `frontend/src/layouts/ChatLayout.astro` and `frontend/src/pages/index.astro`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work — user can chat, browse history, resume past conversations, and delete conversations
 
@@ -125,11 +138,17 @@
 
 **Independent Test**: Click "New Chat" → verify empty view → send message → verify new conversation in sidebar → click "New Chat" without sending → switch to another conversation → verify empty chat was discarded
 
+### Tests for User Story 3
+
+> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+
+- [ ] T048 [P] [US3] Write frontend component tests for new-chat flow (New Chat button clears view, first message creates conversation, empty chat discarded on navigation) in `frontend/tests/components/NewChat.test.tsx`
+
 ### Implementation for User Story 3
 
-- [ ] T045 [US3] Add "New Chat" button to Sidebar component (always visible at top, not scrolled away) in `frontend/src/components/Sidebar.tsx`
-- [ ] T046 [US3] Implement new-chat state management in ChatView: clear messages, reset useChat hook, track "unsaved new chat" state; on first message send, create conversation via API then send message in `frontend/src/components/ChatView.tsx`
-- [ ] T047 [US3] Implement empty-chat discard logic: when user switches to another conversation while in an unsaved new-chat state, discard without persisting in `frontend/src/components/Sidebar.tsx` and `frontend/src/components/ChatView.tsx`
+- [ ] T049 [US3] Add "New Chat" button to Sidebar component (always visible at top, not scrolled away) in `frontend/src/components/Sidebar.tsx`
+- [ ] T050 [US3] Implement new-chat state management in ChatView: clear messages, reset useChat hook, track "unsaved new chat" state; on first message send, create conversation via API then send message in `frontend/src/components/ChatView.tsx`
+- [ ] T051 [US3] Implement empty-chat discard logic: when user switches to another conversation while in an unsaved new-chat state, discard without persisting in `frontend/src/components/Sidebar.tsx` and `frontend/src/components/ChatView.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -139,12 +158,12 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T048 [P] Add structured JSON logging throughout backend (replace any remaining print statements) in `backend/app/`
-- [ ] T049 [P] Add LangChain callback tracing for all LLM calls (request/response correlation IDs) in `backend/app/infrastructure/llm_service.py`
-- [ ] T050 [P] Write frontend component tests for Sidebar, ChatView, and MessageBubble in `frontend/tests/components/Sidebar.test.tsx`, `frontend/tests/components/ChatView.test.tsx`, `frontend/tests/components/MessageBubble.test.tsx`
-- [ ] T051 [P] Add edge case handling: long message validation, rapid-send queuing, partial response on network drop in `backend/app/presentation/routes/chat.py` and `frontend/src/components/ChatView.tsx`
-- [ ] T052 Run `make ci` to verify full pipeline (lint + typecheck + all tests + coverage >= 80%) and fix any issues
-- [ ] T053 Run quickstart.md validation: follow all steps on a clean environment and verify all 6 verification checks pass
+- [ ] T052 [P] Add structured JSON logging throughout backend (replace any remaining print statements) in `backend/app/`
+- [ ] T053 [P] Harden LangChain callback tracing for all LLM calls (ensure request/response correlation IDs propagate end-to-end, log LangGraph state transitions) in `backend/app/infrastructure/llm_service.py`
+- [ ] T054 [P] Add edge case handling: enforce 10,000 character message limit with visible counter, rapid-send queuing, partial response display on network drop in `backend/app/presentation/routes/chat.py` and `frontend/src/components/ChatView.tsx`
+- [ ] T055 Validate performance criteria: SC-001 (streaming starts <3s), SC-004 (sidebar loads 50 conversations <1s), SC-006 (responsive during 2,000-word stream) against running application
+- [ ] T056 Run `make ci` to verify full pipeline (lint + typecheck + all tests + coverage >= 80%) and fix any issues
+- [ ] T057 Run quickstart.md validation: follow all steps on a clean environment and verify all 6 verification checks pass
 
 ---
 
@@ -177,14 +196,18 @@
 - T017, T018, T019 can run in parallel (test fixtures + frontend types)
 
 **Phase 3 - US1**:
-- T020, T021, T022, T023, T024 (all test tasks) can run in parallel
-- T032, T033 (ChatInput, MessageBubble) can run in parallel
+- T020, T021, T022, T023, T024, T025, T026 (all test tasks) can run in parallel
+- T034, T035 (ChatInput, MessageBubble) can run in parallel
 
 **Phase 4 - US2**:
-- T042 (ConfirmDialog) can run in parallel with backend route tasks
+- T039, T040 (backend + frontend test tasks) can run in parallel
+- T045 (ConfirmDialog) can run in parallel with backend route tasks
+
+**Phase 5 - US3**:
+- T048 (frontend test) runs before implementation T049-T051
 
 **Phase 6**:
-- T048, T049, T050, T051 can all run in parallel
+- T052, T053, T054 can all run in parallel
 
 ---
 

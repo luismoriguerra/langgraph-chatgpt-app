@@ -73,7 +73,7 @@ While viewing an existing conversation or the sidebar, the user clicks a "New Ch
 ### Edge Cases
 
 - What happens when the user sends an empty message or a message containing only whitespace? The system MUST prevent submission and indicate that a message is required.
-- What happens when the user sends an extremely long message (over 10,000 characters)? The system MUST either accept it and handle gracefully or enforce a visible character limit.
+- What happens when the user sends an extremely long message? The system MUST enforce a 10,000 character limit with a visible character counter in the input area. Messages exceeding the limit MUST NOT be submittable.
 - What happens when the user rapidly sends multiple messages before receiving responses? The system MUST queue messages and process them sequentially, displaying each in order.
 - What happens when the network connection drops mid-stream while receiving an AI response? The system MUST display the partial response received so far and show an error indicator with a retry option.
 - What happens when two browser tabs are open simultaneously? The system MUST NOT corrupt conversation data; the latest state MUST be reflected when a tab is refreshed.
@@ -92,11 +92,11 @@ While viewing an existing conversation or the sidebar, the user clicks a "New Ch
 - **FR-006**: System MUST provide a "New Chat" button in the sidebar that clears the content area and begins a fresh conversation.
 - **FR-007**: System MUST auto-generate a conversation title by sending the first user message to the AI model and requesting a concise summary title (<=60 characters). The title MUST appear in the sidebar once generated. While the title is being generated, the sidebar entry MUST display a temporary label (e.g., "New conversation...").
 - **FR-008**: System MUST display all messages in a conversation in chronological order, clearly distinguishing between user messages and AI responses.
-- **FR-013**: System MUST render AI responses as formatted markdown, including headings, bold, italic, lists, links, and fenced code blocks with syntax highlighting. User messages MUST be displayed as plain text.
-- **FR-009**: System MUST show a loading/typing indicator while an AI response is being generated.
-- **FR-010**: System MUST handle AI service errors gracefully by displaying a user-friendly error message with a retry option.
-- **FR-011**: System MUST be structured as a monorepo with separate frontend and backend directories that are independently buildable.
-- **FR-012**: System MUST allow users to delete individual conversations. Deletion MUST require a confirmation prompt before removing the conversation and all its messages permanently.
+- **FR-009**: System MUST render AI responses as formatted markdown, including headings, bold, italic, lists, links, and fenced code blocks with syntax highlighting. User messages MUST be displayed as plain text.
+- **FR-010**: System MUST show a loading/typing indicator while an AI response is being generated.
+- **FR-011**: System MUST handle AI service errors gracefully by displaying a user-friendly error message with a retry option.
+- **FR-012**: System MUST be structured as a monorepo with separate frontend and backend directories that are independently buildable.
+- **FR-013**: System MUST allow users to delete individual conversations. Deletion MUST require a confirmation prompt before removing the conversation and all its messages permanently.
 
 ### Key Entities
 
