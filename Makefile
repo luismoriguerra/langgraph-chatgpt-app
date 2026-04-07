@@ -33,7 +33,7 @@ dev: ## Start backend and frontend concurrently
 	$(MAKE) -j2 dev-backend dev-frontend
 
 dev-backend: ## Start FastAPI dev server with auto-reload
-	cd $(BACKEND_DIR) && $(VENV)/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port $${BACKEND_PORT:-8000}
+	cd $(BACKEND_DIR) && .venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port $${BACKEND_PORT:-8000}
 
 dev-frontend: ## Start Astro dev server
 	cd $(FRONTEND_DIR) && npm run dev
@@ -44,32 +44,32 @@ test: ## Run all tests (backend + frontend)
 	$(MAKE) test-frontend
 
 test-unit: ## Run backend unit tests only
-	cd $(BACKEND_DIR) && $(VENV)/bin/pytest tests/unit -v
+	cd $(BACKEND_DIR) && .venv/bin/pytest tests/unit -v
 
 test-int: ## Run backend integration tests (requires Docker)
 	@docker compose ps --status running | grep -q postgres || $(MAKE) docker-up
-	cd $(BACKEND_DIR) && $(VENV)/bin/pytest tests/integration -v
+	cd $(BACKEND_DIR) && .venv/bin/pytest tests/integration -v
 
 test-frontend: ## Run frontend tests
 	cd $(FRONTEND_DIR) && npm run test
 
 lint: ## Run all linters
-	cd $(BACKEND_DIR) && $(VENV)/bin/ruff check .
+	cd $(BACKEND_DIR) && .venv/bin/ruff check .
 	cd $(FRONTEND_DIR) && npm run lint
 
 format: ## Auto-format all code
-	cd $(BACKEND_DIR) && $(VENV)/bin/ruff format .
+	cd $(BACKEND_DIR) && .venv/bin/ruff format .
 	cd $(FRONTEND_DIR) && npm run format
 
 typecheck: ## Run type checking (mypy + tsc)
-	cd $(BACKEND_DIR) && $(VENV)/bin/mypy app
+	cd $(BACKEND_DIR) && .venv/bin/mypy app
 	cd $(FRONTEND_DIR) && npm run typecheck
 
 migrate: ## Run alembic upgrade head
-	cd $(BACKEND_DIR) && $(VENV)/bin/alembic upgrade head
+	cd $(BACKEND_DIR) && .venv/bin/alembic upgrade head
 
 migration: ## Generate a new Alembic migration (usage: make migration msg="description")
-	cd $(BACKEND_DIR) && $(VENV)/bin/alembic revision --autogenerate -m "$(msg)"
+	cd $(BACKEND_DIR) && .venv/bin/alembic revision --autogenerate -m "$(msg)"
 
 docker-up: ## Start Docker Compose services
 	docker compose up -d
@@ -91,6 +91,6 @@ ci: ## Run full CI pipeline locally
 	$(MAKE) typecheck
 	$(MAKE) test-unit
 	$(MAKE) test-int
-	cd $(BACKEND_DIR) && $(VENV)/bin/pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80
+	cd $(BACKEND_DIR) && .venv/bin/pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=80
 	$(MAKE) test-frontend
 	@echo "==> CI pipeline passed!"
