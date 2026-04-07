@@ -141,7 +141,12 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
       if (e instanceof DOMException && e.name === "AbortError") return;
       const msg = e instanceof Error ? e.message : "An error occurred";
       setError(msg);
-      setMessages((prev) => prev.filter((m) => m.id !== assistantMsg.id));
+      setMessages((prev) =>
+        prev.filter((m) => {
+          if (m.id === assistantMsg.id && !m.content) return false;
+          return true;
+        })
+      );
     } finally {
       setIsLoading(false);
       abortRef.current = null;

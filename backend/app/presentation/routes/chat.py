@@ -1,5 +1,6 @@
 import json
 import uuid
+from collections.abc import AsyncIterator
 from typing import Annotated
 
 import structlog
@@ -35,7 +36,7 @@ async def chat_stream(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    async def event_stream():  # type: ignore[no-untyped-def]
+    async def event_stream() -> AsyncIterator[str]:
         try:
             async for token in use_cases.send_message(
                 conversation_id=conversation_id,

@@ -19,6 +19,8 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(text(f"TRUNCATE TABLE {table.name} CASCADE"))
 
     from app.main import create_app
 

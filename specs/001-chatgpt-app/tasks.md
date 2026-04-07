@@ -158,12 +158,12 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T052 [P] Add structured JSON logging throughout backend (replace any remaining print statements) in `backend/app/`
-- [ ] T053 [P] Harden LangChain callback tracing for all LLM calls (ensure request/response correlation IDs propagate end-to-end, log LangGraph state transitions) in `backend/app/infrastructure/llm_service.py`
-- [ ] T054 [P] Add edge case handling: enforce 10,000 character message limit with visible counter, rapid-send queuing, partial response display on network drop in `backend/app/presentation/routes/chat.py` and `frontend/src/components/ChatView.tsx`
-- [ ] T055 Validate performance criteria: SC-001 (streaming starts <3s), SC-004 (sidebar loads 50 conversations <1s), SC-006 (responsive during 2,000-word stream) against running application
-- [ ] T056 Run `make ci` to verify full pipeline (lint + typecheck + all tests + coverage >= 80%) and fix any issues
-- [ ] T057 Run quickstart.md validation: follow all steps on a clean environment and verify all 6 verification checks pass
+- [x] T052 [P] Add structured JSON logging throughout backend (replace any remaining print statements) in `backend/app/`
+- [x] T053 [P] Harden LangChain callback tracing for all LLM calls (ensure request/response correlation IDs propagate end-to-end, log LangGraph state transitions) in `backend/app/infrastructure/llm_service.py`
+- [x] T054 [P] Add edge case handling: enforce 10,000 character message limit with visible counter, rapid-send queuing, partial response display on network drop in `backend/app/presentation/routes/chat.py` and `frontend/src/components/ChatView.tsx`
+- [x] T055 Validate performance criteria: SC-001 (streaming starts <3s), SC-004 (sidebar loads 50 conversations <1s), SC-006 (responsive during 2,000-word stream) against running application
+- [x] T056 Run `make ci` to verify full pipeline (lint + typecheck + all tests + coverage >= 80%) and fix any issues
+- [x] T057 Run quickstart.md validation: follow all steps on a clean environment and verify all 6 verification checks pass
 
 ---
 

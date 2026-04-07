@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.domain.entities import Conversation
@@ -18,6 +19,8 @@ from app.presentation.schemas import (
     MessageResponse,
     UpdateConversationRequest,
 )
+
+logger = structlog.get_logger()
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 

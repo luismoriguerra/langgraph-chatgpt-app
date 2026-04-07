@@ -30,7 +30,7 @@ class MessageRepository(Protocol):
 
 
 class LLMService(Protocol):
-    async def stream_chat(
+    def stream_chat(
         self, messages: list[Message], system_prompt: str = ""
     ) -> AsyncIterator[str]: ...
 
