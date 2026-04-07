@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
-import { createConversation, getChatStreamUrl } from "../services/api";
+import { createConversation, getConversation, getChatStreamUrl } from "../services/api";
 
 interface ChatMessage {
   id: string;
@@ -21,12 +21,36 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
   const [activeConvId, setActiveConvId] = useState<string | null>(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const justCreatedRef = useRef<string | null>(null);
 
   useEffect(() => {
     setActiveConvId(conversationId);
+    setError(null);
     if (!conversationId) {
       setMessages([]);
+      return;
     }
+    if (justCreatedRef.current === conversationId) {
+      justCreatedRef.current = null;
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const conv = await getConversation(conversationId);
+        if (cancelled) return;
+        setMessages(
+          conv.messages.map((m) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+          }))
+        );
+      } catch {
+        if (!cancelled) setError("Failed to load conversation");
+      }
+    })();
+    return () => { cancelled = true; };
   }, [conversationId]);
 
   useEffect(() => {
@@ -43,6 +67,7 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
       try {
         const conv = await createConversation({});
         convId = conv.id;
+        justCreatedRef.current = convId;
         setActiveConvId(convId);
         onConversationCreated?.(convId);
       } catch (e) {

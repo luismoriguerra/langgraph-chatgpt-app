@@ -1,16 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
-import { listConversations } from "../services/api";
+import { listConversations, deleteConversation } from "../services/api";
 import type { Conversation } from "../types";
+import ConfirmDialog from "./ConfirmDialog";
 
 interface SidebarProps {
   activeId: string | null;
   onSelect: (id: string) => void;
   onNewChat: () => void;
+  onDeleted?: (id: string) => void;
   refreshKey?: number;
 }
 
-export default function Sidebar({ activeId, onSelect, onNewChat, refreshKey }: SidebarProps) {
+export default function Sidebar({ activeId, onSelect, onNewChat, onDeleted, refreshKey }: SidebarProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -25,28 +28,65 @@ export default function Sidebar({ activeId, onSelect, onNewChat, refreshKey }: S
     refresh();
   }, [refresh, refreshKey]);
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteConversation(deleteTarget.id);
+      setConversations((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      onDeleted?.(deleteTarget.id);
+    } catch {
+      // silent fail
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <button onClick={onNewChat} style={styles.newChatBtn}>
         + New Chat
       </button>
+
       <div style={styles.list}>
         {conversations.map((conv) => (
-          <button
+          <div
             key={conv.id}
-            onClick={() => onSelect(conv.id)}
             style={{
               ...styles.item,
               background: conv.id === activeId ? "#2f2f2f" : "transparent",
             }}
           >
-            {conv.title}
-          </button>
+            <button
+              onClick={() => onSelect(conv.id)}
+              style={styles.itemTitle}
+            >
+              {conv.title}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteTarget(conv);
+              }}
+              style={styles.deleteBtn}
+              title="Delete conversation"
+            >
+              ×
+            </button>
+          </div>
         ))}
         {conversations.length === 0 && (
           <div style={styles.empty}>No conversations yet</div>
         )}
       </div>
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete conversation"
+          message={`Are you sure you want to delete "${deleteTarget.title}"? This cannot be undone.`}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }
@@ -67,28 +107,46 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontSize: 14,
     marginBottom: 12,
-    textAlign: "left",
+    textAlign: "left" as const,
     transition: "background 0.15s",
   },
   list: {
     flex: 1,
-    overflowY: "auto",
+    overflowY: "auto" as const,
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     gap: 2,
   },
   item: {
+    display: "flex",
+    alignItems: "center",
+    borderRadius: 8,
+    transition: "background 0.15s",
+    position: "relative" as const,
+  },
+  itemTitle: {
+    flex: 1,
     padding: "10px 12px",
     border: "none",
-    borderRadius: 8,
+    background: "transparent",
     color: "#e3e3e3",
     cursor: "pointer",
     fontSize: 13,
-    textAlign: "left",
-    whiteSpace: "nowrap",
+    textAlign: "left" as const,
+    whiteSpace: "nowrap" as const,
     overflow: "hidden",
     textOverflow: "ellipsis",
-    transition: "background 0.15s",
+  },
+  deleteBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#666",
+    cursor: "pointer",
+    fontSize: 18,
+    padding: "4px 10px",
+    borderRadius: 4,
+    flexShrink: 0,
+    lineHeight: 1,
   },
   empty: {
     color: "#666",

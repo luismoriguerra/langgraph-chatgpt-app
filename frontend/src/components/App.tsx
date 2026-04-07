@@ -1,14 +1,12 @@
 import { useState, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import ChatView from "./ChatView";
-import { getConversation } from "../services/api";
-import type { Message } from "../types";
 
 export default function App() {
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleSelect = useCallback(async (id: string) => {
+  const handleSelect = useCallback((id: string) => {
     setActiveConvId(id);
   }, []);
 
@@ -21,6 +19,12 @@ export default function App() {
     setRefreshKey((k) => k + 1);
   }, []);
 
+  const handleDeleted = useCallback((id: string) => {
+    if (id === activeConvId) {
+      setActiveConvId(null);
+    }
+  }, [activeConvId]);
+
   return (
     <div style={styles.shell}>
       <aside style={styles.sidebar}>
@@ -28,6 +32,7 @@ export default function App() {
           activeId={activeConvId}
           onSelect={handleSelect}
           onNewChat={handleNewChat}
+          onDeleted={handleDeleted}
           refreshKey={refreshKey}
         />
       </aside>
