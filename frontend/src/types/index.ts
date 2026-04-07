@@ -16,6 +16,7 @@ export interface ToolInvocation {
   tool_name: string;
   tool_input: string;
   tool_output: Source[];
+  tool_result?: string | null;
   created_at: string;
 }
 

@@ -301,6 +301,55 @@ class TestSendMessageWithAgent:
         assert hist[2].role == "user"
 
     @pytest.mark.asyncio
+    async def test_persists_tool_result_from_tool_result_event(
+        self,
+        make_conversation,
+        make_message,
+        mock_conversation_repo,
+        mock_message_repo,
+        mock_tool_repo,
+    ) -> None:
+        conv = make_conversation()
+        mock_conversation_repo.get_by_id.return_value = conv
+        user_msg = make_message(conversation_id=conv.id, role="user", content="What is 5+3?")
+        mock_message_repo.create.return_value = user_msg
+        mock_message_repo.list_by_conversation.return_value = [user_msg]
+
+        llm = AsyncMock()
+
+        async def stream_with_calculate(*args, **kwargs):
+            yield {
+                "type": "tool-start",
+                "data": {"toolName": "calculate", "toolInput": "5+3"},
+            }
+            yield {"type": "tool-end", "data": {"toolName": "calculate"}}
+            yield {"type": "sources", "data": {"sources": []}}
+            yield {
+                "type": "tool-result",
+                "data": {"toolName": "calculate", "toolInput": "5+3", "result": "8"},
+            }
+            yield {"type": "text-delta", "data": {"textDelta": "The answer is 8"}}
+
+        llm.stream_agent_chat = stream_with_calculate
+        llm.generate_title = AsyncMock(return_value="Math Question")
+
+        async for _ in send_message_with_agent(
+            conversation_id=conv.id,
+            user_content="What is 5+3?",
+            conv_repo=mock_conversation_repo,
+            msg_repo=mock_message_repo,
+            tool_repo=mock_tool_repo,
+            llm_service=llm,
+        ):
+            pass
+
+        assert mock_tool_repo.create.call_count == 1
+        tool_inv = mock_tool_repo.create.call_args_list[0][0][0]
+        assert tool_inv.tool_name == "calculate"
+        assert tool_inv.tool_result == "8"
+        assert tool_inv.tool_output == []
+
+    @pytest.mark.asyncio
     async def test_stream_agent_chat_receives_prior_messages_in_chronological_order(
         self,
         make_conversation,

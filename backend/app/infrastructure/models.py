@@ -77,6 +77,7 @@ class ToolInvocationModel(Base):
     tool_name: Mapped[str] = mapped_column(String(50), nullable=False)
     tool_input: Mapped[str] = mapped_column(Text, nullable=False)
     tool_output: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=False)
+    tool_result: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())
 
     message: Mapped["MessageModel"] = relationship(back_populates="tool_invocations")

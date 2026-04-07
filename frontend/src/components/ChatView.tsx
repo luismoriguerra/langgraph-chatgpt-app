@@ -2,8 +2,16 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import SearchIndicator from "./SearchIndicator";
+import ToolResultCard from "./ToolResultCard";
 import { createConversation, getConversation, getChatStreamUrl } from "../services/api";
 import type { Message, Source } from "../types";
+
+interface ActiveToolCall {
+  toolName: string;
+  toolInput: string;
+  result?: string;
+  status: "calling" | "done" | "error";
+}
 
 interface ChatViewProps {
   conversationId: string | null;
@@ -15,6 +23,7 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
+  const [activeToolCalls, setActiveToolCalls] = useState<ActiveToolCall[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeConvId, setActiveConvId] = useState<string | null>(conversationId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,6 +70,7 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
     setError(null);
     setIsSearching(false);
     setSources([]);
+    setActiveToolCalls([]);
     setIsLoading(true);
 
     let convId = activeConvId;
@@ -140,6 +150,24 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
             }
             if (payload.type === "tool-start") {
               setIsSearching(true);
+              setActiveToolCalls((prev) => [
+                ...prev,
+                {
+                  toolName: payload.toolName,
+                  toolInput: payload.toolInput,
+                  status: "calling",
+                },
+              ]);
+            }
+            if (payload.type === "tool-result") {
+              const isError = payload.result?.startsWith("Error:");
+              setActiveToolCalls((prev) =>
+                prev.map((tc) =>
+                  tc.toolName === payload.toolName && tc.status === "calling"
+                    ? { ...tc, result: payload.result, status: isError ? "error" : "done" }
+                    : tc
+                )
+              );
             }
             if (payload.type === "sources") {
               setSources(payload.sources || []);
@@ -184,6 +212,16 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
             style={{ display: "contents" }}
             data-tool-invocation-count={(msg.tool_invocations ?? []).length}
           >
+            {msg.role === "assistant" &&
+              (msg.tool_invocations ?? []).map((inv, idx) => (
+                <ToolResultCard
+                  key={`inv-${inv.id ?? idx}`}
+                  toolName={inv.tool_name}
+                  toolInput={inv.tool_input}
+                  result={inv.tool_result ?? null}
+                  status={inv.tool_result?.startsWith("Error:") ? "error" : "done"}
+                />
+              ))}
             <MessageBubble role={msg.role} content={msg.content} />
           </div>
         ))}
@@ -194,6 +232,15 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
             <span style={{ ...styles.dot, animationDelay: "0.4s" }} />
           </div>
         )}
+        {activeToolCalls.map((tc, idx) => (
+          <ToolResultCard
+            key={`active-${tc.toolName}-${idx}`}
+            toolName={tc.toolName}
+            toolInput={tc.toolInput}
+            result={tc.result}
+            status={tc.status}
+          />
+        ))}
         <SearchIndicator visible={isSearching} />
         <div ref={messagesEndRef} />
       </div>

@@ -148,6 +148,8 @@ async def send_message_with_agent(
             })
         elif event["type"] == "sources" and collected_tools:
             collected_tools[-1]["sources"] = event["data"]["sources"]
+        elif event["type"] == "tool-result" and collected_tools:
+            collected_tools[-1]["tool_result"] = event["data"]["result"]
 
     assistant_content = "".join(full_response)
     if not assistant_content.strip():
@@ -177,6 +179,7 @@ async def send_message_with_agent(
                 for s in tool_data["sources"]
             ],
             created_at=datetime.utcnow(),
+            tool_result=tool_data.get("tool_result", ""),
         )
         await tool_repo.create(invocation)
 
