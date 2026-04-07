@@ -1,10 +1,16 @@
 import uuid
 from datetime import UTC, datetime
 
+import pytest
+from pydantic import ValidationError
+
 from app.presentation.schemas import (
+    CreateConversationRequest,
     MessageResponse,
     SearchResultResponse,
+    SendMessageRequest,
     ToolInvocationResponse,
+    UpdateConversationRequest,
 )
 
 
@@ -65,3 +71,28 @@ def test_message_response_with_populated_invocations() -> None:
     assert len(msg.tool_invocations) == 1
     assert msg.tool_invocations[0].tool_name == "web_search"
     assert msg.tool_invocations[0].tool_output[0].url == "https://z"
+
+
+def test_send_message_request_valid() -> None:
+    req = SendMessageRequest(message="Hello")
+    assert req.message == "Hello"
+
+
+def test_send_message_request_empty_rejected() -> None:
+    with pytest.raises(ValidationError):
+        SendMessageRequest(message="")
+
+
+def test_send_message_request_too_long_rejected() -> None:
+    with pytest.raises(ValidationError):
+        SendMessageRequest(message="x" * 10001)
+
+
+def test_create_conversation_request_default_title() -> None:
+    req = CreateConversationRequest()
+    assert req.title == "New conversation..."
+
+
+def test_update_conversation_request_max_length() -> None:
+    with pytest.raises(ValidationError):
+        UpdateConversationRequest(title="x" * 101)

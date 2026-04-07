@@ -105,7 +105,24 @@ async def send_message_with_agent(
     )
     await msg_repo.create(user_message)
 
-    history = await msg_repo.list_by_conversation(conversation_id)
+    raw_history = await msg_repo.list_by_conversation(conversation_id)
+    all_invocations = await tool_repo.list_by_conversation(conversation_id)
+
+    invocations_by_msg: dict[uuid.UUID, list[ToolInvocation]] = {}
+    for inv in all_invocations:
+        invocations_by_msg.setdefault(inv.message_id, []).append(inv)
+
+    history = [
+        Message(
+            id=m.id,
+            conversation_id=m.conversation_id,
+            role=m.role,
+            content=m.content,
+            created_at=m.created_at,
+            tool_invocations=invocations_by_msg.get(m.id, []),
+        )
+        for m in raw_history
+    ]
 
     logger.info(
         "use_case.send_message_with_agent",

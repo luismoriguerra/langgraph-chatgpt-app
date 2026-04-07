@@ -269,6 +269,7 @@ class TestSendMessageWithAgent:
         mock_message_repo.create.return_value = new_user
         full_history = [prev_user, prev_assistant, new_user]
         mock_message_repo.list_by_conversation.return_value = full_history
+        mock_tool_repo.list_by_conversation.return_value = [tool_inv]
 
         captured: list[list[Message]] = []
 
@@ -289,7 +290,6 @@ class TestSendMessageWithAgent:
             pass
 
         assert len(captured) == 1
-        assert captured[0] is full_history
         hist = captured[0]
         assert len(hist) == 3
         assert hist[0].content == "Search for cats"
@@ -318,6 +318,7 @@ class TestSendMessageWithAgent:
         mock_message_repo.create.return_value = m3
         full_history = [m1, m2, m3]
         mock_message_repo.list_by_conversation.return_value = full_history
+        mock_tool_repo.list_by_conversation.return_value = []
 
         seen_orders: list[list[str]] = []
 

@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from app.application.chat_graph import SYSTEM_PROMPT, build_chat_agent
 from app.config import settings
 from app.domain.entities import Message
-from app.domain.ports import ChatEvent
+from app.domain.ports import ChatEvent  # used as type annotation only
 
 logger = structlog.get_logger()
 
@@ -147,13 +147,13 @@ class OpenAILLMService:
                         tool_name=event["name"],
                         query=q,
                     )
-                    yield ChatEvent(
-                        type="tool-start",
-                        data={
+                    yield {
+                        "type": "tool-start",
+                        "data": {
                             "toolName": event["name"],
-                            "toolInput": inp if isinstance(inp, dict) else {"input": inp},
+                            "toolInput": q,
                         },
-                    )
+                    }
 
                 elif kind == "on_tool_error" and event.get("name"):
                     run_id = str(event.get("run_id", ""))
@@ -170,14 +170,14 @@ class OpenAILLMService:
                         latency_ms=latency_ms,
                         error=err_s,
                     )
-                    yield ChatEvent(
-                        type="tool-end",
-                        data={"toolName": event["name"]},
-                    )
-                    yield ChatEvent(
-                        type="sources",
-                        data={"sources": []},
-                    )
+                    yield {
+                        "type": "tool-end",
+                        "data": {"toolName": event["name"]},
+                    }
+                    yield {
+                        "type": "sources",
+                        "data": {"sources": []},
+                    }
 
                 elif kind == "on_tool_end" and event.get("name"):
                     run_id = str(event.get("run_id", ""))
@@ -193,23 +193,23 @@ class OpenAILLMService:
                     )
                     raw_output = str(event["data"].get("output", ""))
                     sources = _parse_search_results(raw_output)
-                    yield ChatEvent(
-                        type="tool-end",
-                        data={"toolName": event["name"]},
-                    )
-                    yield ChatEvent(
-                        type="sources",
-                        data={"sources": sources},
-                    )
+                    yield {
+                        "type": "tool-end",
+                        "data": {"toolName": event["name"]},
+                    }
+                    yield {
+                        "type": "sources",
+                        "data": {"sources": sources},
+                    }
 
                 elif kind == "on_chat_model_stream":
                     chunk = event["data"].get("chunk")
                     if chunk and isinstance(chunk.content, str) and chunk.content:
                         token_count += 1
-                        yield ChatEvent(
-                            type="text-delta",
-                            data={"textDelta": chunk.content},
-                        )
+                        yield {
+                            "type": "text-delta",
+                            "data": {"textDelta": chunk.content},
+                        }
 
         except (ConnectionError, TimeoutError, OSError):
             logger.exception("llm.stream_agent_chat.transport_error")

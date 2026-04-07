@@ -129,6 +129,7 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
           try {
             const payload = JSON.parse(line.slice(6));
             if (payload.type === "text-delta" && payload.textDelta) {
+              setIsSearching(false);
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantMsg.id
@@ -139,9 +140,6 @@ export default function ChatView({ conversationId, onConversationCreated }: Chat
             }
             if (payload.type === "tool-start") {
               setIsSearching(true);
-            }
-            if (payload.type === "tool-end") {
-              setIsSearching(false);
             }
             if (payload.type === "sources") {
               setSources(payload.sources || []);

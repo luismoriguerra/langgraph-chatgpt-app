@@ -29,7 +29,7 @@ function sseResponse(chunks: string[]) {
   } as Response;
 }
 
-function sseResponseToolStartThenEndDelayed() {
+function sseResponseToolStartThenTextDelta() {
   const encoder = new TextEncoder();
   let step = 0;
   return {
@@ -43,7 +43,11 @@ function sseResponseToolStartThenEndDelayed() {
         }
         if (step === 1) {
           await new Promise<void>((r) => setTimeout(r, 30));
-          controller.enqueue(encoder.encode('data: {"type":"tool-end"}\n'));
+          controller.enqueue(
+            encoder.encode(
+              'data: {"type":"tool-end"}\ndata: {"type":"text-delta","textDelta":"answer"}\n'
+            )
+          );
           step = 2;
           controller.close();
         }
@@ -93,8 +97,8 @@ describe("ChatView SSE / isSearching", () => {
     await waitFor(() => expect(screen.getByText("Searching the web...")).toBeTruthy());
   });
 
-  it("hides SearchIndicator after tool-end SSE event", async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue(sseResponseToolStartThenEndDelayed());
+  it("hides SearchIndicator after first text-delta following tool-end", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(sseResponseToolStartThenTextDelta());
 
     render(<ChatView conversationId="conv-1" />);
     await waitFor(() => expect(api.getConversation).toHaveBeenCalled());
